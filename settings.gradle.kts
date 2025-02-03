@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "HuddleUp"
 include(":app")
- 
+include(":domain")

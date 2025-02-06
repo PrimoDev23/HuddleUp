@@ -42,6 +42,8 @@ android {
 
 dependencies {
 
+    implementation(projects.domain)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,6 +61,7 @@ dependencies {
     implementation(libs.koin.compose)
 
     implementation(libs.kotlinx.serialization)
+    implementation(libs.kotlinx.datetime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

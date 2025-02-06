@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">HuddleUp</string>
+    <string name="home_title">Overview</string>
+    <string name="home_calendar_back">Navigate a month back</string>
+    <string name="home_calendar_forward">Navigate a month back</string>
+    <string name="event_card_all_day">All day</string>
+    <string name="local_time_am_marker">am</string>
+    <string name="local_time_pm_marker">pm</string>
+    <string name="home_add_event">Add new event</string>
 </resources>

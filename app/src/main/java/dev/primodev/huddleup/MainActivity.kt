@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import dev.primodev.huddleup.di.navigationModule
+import dev.primodev.huddleup.di.viewModelModule
+import dev.primodev.huddleup.feature.home.HomeDestination
+import dev.primodev.huddleup.feature.home.homeGraph
 import dev.primodev.huddleup.navigation.NavEvent
 import dev.primodev.huddleup.navigation.NavEventProvider
 import dev.primodev.huddleup.theme.HuddleUpTheme
@@ -23,7 +26,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             KoinApplication(
                 application = {
-                    modules(navigationModule)
+                    modules(
+                        navigationModule,
+                        viewModelModule
+                    )
                 }
             ) {
                 HuddleUpTheme {
@@ -42,9 +48,9 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         modifier = Modifier.fillMaxSize(),
                         navController = navController,
-                        startDestination = Unit
+                        startDestination = HomeDestination
                     ) {
-
+                        homeGraph()
                     }
                 }
             }

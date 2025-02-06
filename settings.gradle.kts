@@ -24,3 +24,5 @@ rootProject.name = "HuddleUp"
 include(":app")
 include(":domain")
 include(":data")
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

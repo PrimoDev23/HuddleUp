@@ -102,7 +102,8 @@ private class EventProvider : PreviewParameterProvider<Event> {
         ),
         Event(
             duration = EventDuration.AllDay(
-                date = Clock.System.nowAsDateTime().date
+                start = now.date,
+                end = now.date
             ),
             title = "All day event"
         ),

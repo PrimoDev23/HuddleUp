@@ -412,7 +412,8 @@ private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
                 now.date to listOf(
                     Event(
                         duration = EventDuration.AllDay(
-                            date = now.date
+                            start = now.date,
+                            end = now.date
                         ),
                         title = "All day event"
                     )
@@ -425,13 +426,15 @@ private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
                 now.date to listOf(
                     Event(
                         duration = EventDuration.AllDay(
-                            date = Clock.System.nowAsDateTime().date
+                            start = now.date,
+                            end = now.date
                         ),
                         title = "Event 1"
                     ),
                     Event(
                         duration = EventDuration.AllDay(
-                            date = now.date
+                            start = now.date,
+                            end = now.date
                         ),
                         title = "Event 2"
                     ),

@@ -6,6 +6,7 @@ import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.nowAsDateTime
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
+import dev.primodev.huddleup.feature.home.uistate.toEventsPerDay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -28,7 +29,11 @@ class HomeViewModel : ViewModel() {
         listOf(
             Event(
                 duration = EventDuration.AllDay(
-                    date = Clock.System.nowAsDateTime().date
+                    start = Clock.System.nowAsDateTime().date,
+                    end = Clock.System.nowAsDateTime().date.plus(
+                        value = 1,
+                        unit = DateTimeUnit.DAY
+                    )
                 ),
                 title = "All day event"
             ),
@@ -89,11 +94,14 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun List<Event>.prepareEventMap() =
-        this.groupBy { event ->
-            when (val duration = event.duration) {
-                is EventDuration.AllDay -> duration.date
-                is EventDuration.Specific -> duration.start.date
+        this
+            .flatMap { event ->
+                event.toEventsPerDay()
             }
-        }
-
+            .groupBy { event ->
+                when (val duration = event.duration) {
+                    is EventDuration.AllDay -> duration.start
+                    is EventDuration.Specific -> duration.start.date
+                }
+            }
 }

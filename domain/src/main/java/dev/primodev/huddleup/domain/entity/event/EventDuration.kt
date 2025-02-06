@@ -4,7 +4,11 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 
 sealed interface EventDuration {
-    data class AllDay(val date: LocalDate) : EventDuration
+    data class AllDay(
+        val start: LocalDate,
+        val end: LocalDate,
+    ) : EventDuration
+
     data class Specific(
         val start: LocalDateTime,
         val end: LocalDateTime,

@@ -10,4 +10,5 @@ sealed interface EventCreationUiEvent {
 
     data class StartChanged(val instant: Instant) : EventCreationUiEvent
     data class EndChanged(val instant: Instant) : EventCreationUiEvent
+    data object SaveClick : EventCreationUiEvent
 }

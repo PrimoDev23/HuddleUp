@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import dev.primodev.huddleup.di.navigationModule
 import dev.primodev.huddleup.di.viewModelModule
+import dev.primodev.huddleup.feature.eventcreation.eventCreationGraph
 import dev.primodev.huddleup.feature.home.HomeDestination
 import dev.primodev.huddleup.feature.home.homeGraph
 import dev.primodev.huddleup.navigation.NavEvent
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = HomeDestination
                     ) {
                         homeGraph()
+                        eventCreationGraph()
                     }
                 }
             }

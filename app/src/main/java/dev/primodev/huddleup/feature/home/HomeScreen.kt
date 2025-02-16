@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -55,7 +57,6 @@ import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.nowAsDateTime
-import dev.primodev.huddleup.feature.home.components.CalendarEventBubbleRow
 import dev.primodev.huddleup.feature.home.components.EventCard
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
 import dev.primodev.huddleup.theme.HuddleUpTheme
@@ -254,6 +255,7 @@ private fun HomeScreenCalendarNavigator(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HomeScreenCalendar(
     selectedDate: LocalDate,
@@ -320,7 +322,21 @@ private fun HomeScreenCalendar(
                     )
 
                     if (eventsForCurrentDay.isNotEmpty()) {
-                        CalendarEventBubbleRow(
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                alignment = Alignment.CenterHorizontally,
+                                space = 4.dp
+                            ),
+                            maxLines = 1
+                        ) {
+                            eventsForCurrentDay.forEach { _ ->
+                                Canvas(modifier = Modifier.size(4.dp)) {
+                                    drawCircle(color = Color.Black)
+                                }
+                            }
+                        }
+                        /*CalendarEventBubbleRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(
                                 alignment = Alignment.CenterHorizontally,
@@ -332,7 +348,7 @@ private fun HomeScreenCalendar(
                                     drawCircle(color = Color.Black)
                                 }
                             }
-                        }
+                        }*/
                     }
                 }
             }

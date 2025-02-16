@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.feature.eventcreation.EventCreationDestination
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
 import dev.primodev.huddleup.feature.home.uistate.toEventsPerDay
+import dev.primodev.huddleup.navigation.AppNavigator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -21,7 +23,9 @@ import kotlinx.datetime.atDate
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(
+    private val navigator: AppNavigator,
+) : ViewModel() {
 
     private val selectedDate = MutableStateFlow(Clock.System.nowAsDateTime().date)
 
@@ -90,7 +94,9 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun onAddEventClick() {
-
+        viewModelScope.launch {
+            navigator.navigateTo(EventCreationDestination)
+        }
     }
 
     private fun List<Event>.prepareEventMap() =

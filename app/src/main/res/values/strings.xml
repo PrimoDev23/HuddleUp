@@ -7,4 +7,11 @@
     <string name="local_time_am_marker">am</string>
     <string name="local_time_pm_marker">pm</string>
     <string name="home_add_event">Add new event</string>
+    <string name="event_creation_title">Create event</string>
+    <string name="event_creation_title_label">Title</string>
+    <string name="event_creation_all_day">All day</string>
+    <string name="event_creation_duration_expand">Expand</string>
+    <string name="datetime_picker_dialog_confirm">OK</string>
+    <string name="datetime_picker_dialog_cancel">Cancel</string>
+    <string name="time_picker_dialog_title">Select time</string>
 </resources>

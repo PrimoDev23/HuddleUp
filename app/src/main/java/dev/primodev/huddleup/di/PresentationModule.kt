@@ -1,5 +1,6 @@
 package dev.primodev.huddleup.di
 
+import dev.primodev.huddleup.feature.eventcreation.EventCreationViewModel
 import dev.primodev.huddleup.feature.home.HomeViewModel
 import dev.primodev.huddleup.navigation.AppNavigator
 import dev.primodev.huddleup.navigation.AppNavigatorImpl
@@ -15,4 +16,5 @@ val navigationModule = module {
 
 val viewModelModule = module {
     viewModelOf(::HomeViewModel)
+    viewModelOf(::EventCreationViewModel)
 }

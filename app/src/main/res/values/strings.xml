@@ -16,4 +16,5 @@
     <string name="time_picker_dialog_title">Select time</string>
     <string name="event_creation_save">Save</string>
     <string name="home_error">There was an error loading the data…</string>
+    <string name="home_today_button">Jump to today\'s date</string>
 </resources>

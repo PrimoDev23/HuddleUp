@@ -49,8 +49,15 @@ class HomeViewModel(
 
     fun onEvent(event: HomeUiEvent) {
         when (event) {
+            HomeUiEvent.TodayClick -> onTodayClick()
             is HomeUiEvent.DayClick -> onDayClick(event.date)
             HomeUiEvent.AddEventClick -> onAddEventClick()
+        }
+    }
+
+    private fun onTodayClick() {
+        viewModelScope.launch {
+            selectedDate.emit(Clock.System.nowAsDateTime().date)
         }
     }
 

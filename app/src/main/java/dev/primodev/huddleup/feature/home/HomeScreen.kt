@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.primodev23.calendar.Calendar
 import com.github.primodev23.calendar.CalendarState
+import com.github.primodev23.calendar.models.Month
 import com.github.primodev23.calendar.rememberCalendarState
 import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.Event
@@ -98,6 +101,26 @@ private fun HomeScreenContent(
             TopAppBar(
                 title = {
                     Text(text = stringResource(R.string.home_title))
+                },
+                actions = {
+                    when (uiState) {
+                        HomeUiState.InitLoading,
+                        HomeUiState.Error,
+                            -> Unit
+
+                        is HomeUiState.Data -> {
+                            IconButton(
+                                onClick = {
+                                    onEvent(HomeUiEvent.TodayClick)
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_today),
+                                    contentDescription = stringResource(R.string.home_today_button)
+                                )
+                            }
+                        }
+                    }
                 }
             )
         },
@@ -198,6 +221,10 @@ private fun HomeScreenData(
                 }
             }
         )
+
+        LaunchedEffect(uiState.selectedDate) {
+            calendarState.animateScrollToMonth(Month(date = uiState.selectedDate))
+        }
 
         HomeScreenCalendar(
             modifier = Modifier.width(448.dp),

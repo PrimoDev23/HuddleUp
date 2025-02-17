@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -33,8 +34,20 @@ android {
 }
 
 dependencies {
+    implementation(projects.domain)
+    implementation(projects.shared.appresult)
 
     implementation(libs.androidx.core.ktx)
+
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.android)
+
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.kotlinx.datetime)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

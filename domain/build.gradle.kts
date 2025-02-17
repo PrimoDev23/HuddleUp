@@ -13,5 +13,11 @@ kotlin {
 }
 
 dependencies {
+    implementation(projects.shared.appresult)
+
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.datetime)
 }

@@ -6,13 +6,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import dev.primodev.huddleup.R
-import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
-internal fun LocalDateTime.toLocalizedString(): String {
+internal fun Instant.toLocalizedString(): String {
     val context = LocalContext.current
     val amMarker = stringResource(R.string.local_time_am_marker)
     val pmMarker = stringResource(R.string.local_time_pm_marker)
@@ -37,6 +39,8 @@ internal fun LocalDateTime.toLocalizedString(): String {
             }
         }
 
-        this.time.format(formatter)
+        val time = this.toLocalDateTime(TimeZone.currentSystemDefault()).time
+
+        time.format(formatter)
     }
 }

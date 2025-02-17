@@ -26,3 +26,5 @@ include(":domain")
 include(":data")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+include(":shared:appresult")
+include(":shared:triggerables")

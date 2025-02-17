@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
-import dev.primodev.huddleup.extensions.nowAsDateTime
 import kotlinx.datetime.Clock
 
 @Composable
@@ -129,30 +128,27 @@ private data class BubbleRowPreviewData(
 )
 
 private class BubbleRowPreviewDataProvider : PreviewParameterProvider<BubbleRowPreviewData> {
-    private val now = Clock.System.nowAsDateTime()
+    private val now = Clock.System.now()
 
     override val values: Sequence<BubbleRowPreviewData> = sequenceOf(
         BubbleRowPreviewData(
             events = listOf(
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 1"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 2"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 3"
                 ),
             ),
@@ -161,24 +157,21 @@ private class BubbleRowPreviewDataProvider : PreviewParameterProvider<BubbleRowP
         BubbleRowPreviewData(
             events = listOf(
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 1"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 2"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 3"
                 ),
             ),
@@ -187,24 +180,21 @@ private class BubbleRowPreviewDataProvider : PreviewParameterProvider<BubbleRowP
         BubbleRowPreviewData(
             events = listOf(
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 1"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 2"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 3"
                 ),
             ),
@@ -213,24 +203,21 @@ private class BubbleRowPreviewDataProvider : PreviewParameterProvider<BubbleRowP
         BubbleRowPreviewData(
             events = listOf(
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 1"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 2"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 3"
                 ),
             ),
@@ -242,52 +229,45 @@ private class BubbleRowPreviewDataProvider : PreviewParameterProvider<BubbleRowP
         BubbleRowPreviewData(
             events = listOf(
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 1"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 2"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 3"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 4"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 5"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 6"
                 ),
                 Event(
-                    duration = EventDuration.AllDay(
-                        start = now.date,
-                        end = now.date
-                    ),
+                    duration = EventDuration.AllDay,
+                    start = now,
+                    end = now,
                     title = "Event 7"
                 ),
             ),

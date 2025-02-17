@@ -1,16 +1,6 @@
 package dev.primodev.huddleup.domain.entity.event
 
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-
-sealed interface EventDuration {
-    data class AllDay(
-        val start: LocalDate,
-        val end: LocalDate,
-    ) : EventDuration
-
-    data class Specific(
-        val start: LocalDateTime,
-        val end: LocalDateTime,
-    ) : EventDuration
+enum class EventDuration {
+    AllDay,
+    Specific
 }

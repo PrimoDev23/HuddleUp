@@ -56,6 +56,7 @@ import com.github.primodev23.calendar.rememberCalendarState
 import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
+import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.extensions.nowAsDateTime
 import dev.primodev.huddleup.feature.home.components.EventCard
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
@@ -65,14 +66,13 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.atDate
-import kotlinx.datetime.atTime
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import org.koin.androidx.compose.koinViewModel
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
+import kotlin.time.Duration.Companion.days
 
 @Composable
 internal fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
@@ -103,7 +103,9 @@ private fun HomeScreenContent(
         },
         floatingActionButton = {
             when (uiState) {
-                HomeUiState.InitLoading -> Unit
+                HomeUiState.InitLoading,
+                HomeUiState.Error,
+                    -> Unit
 
                 is HomeUiState.Data -> FloatingActionButton(
                     onClick = {
@@ -128,6 +130,8 @@ private fun HomeScreenContent(
             when (uiState) {
                 HomeUiState.InitLoading -> HomeScreenInitLoading(modifier = baseModifier)
 
+                HomeUiState.Error -> HomeScreenError(modifier = baseModifier)
+
                 is HomeUiState.Data -> HomeScreenData(
                     modifier = baseModifier,
                     uiState = uiState,
@@ -146,6 +150,16 @@ private fun HomeScreenInitLoading(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun HomeScreenError(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = stringResource(R.string.home_error))
     }
 }
 
@@ -415,73 +429,69 @@ private fun HomeScreenContentPreview(
 }
 
 private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
-    private val now = Clock.System.nowAsDateTime()
+    private val now = Clock.System.now()
+    private val nowDateTime = Clock.System.nowAsDateTime()
 
     override val values: Sequence<HomeUiState> = sequenceOf(
         HomeUiState.InitLoading,
+        HomeUiState.Error,
         HomeUiState.Data(
             events = emptyMap(),
-            selectedDate = now.date
+            selectedDate = nowDateTime.date
         ),
         HomeUiState.Data(
             events = mapOf(
-                now.date to listOf(
+                nowDateTime.date to listOf(
                     Event(
-                        duration = EventDuration.AllDay(
-                            start = now.date,
-                            end = now.date
-                        ),
+                        duration = EventDuration.AllDay,
+                        start = now,
+                        end = now,
                         title = "All day event"
                     )
                 ),
             ),
-            selectedDate = now.date
+            selectedDate = nowDateTime.date
         ),
         HomeUiState.Data(
             events = mapOf(
-                now.date to listOf(
+                nowDateTime.date to listOf(
                     Event(
-                        duration = EventDuration.AllDay(
-                            start = now.date,
-                            end = now.date
-                        ),
+                        duration = EventDuration.AllDay,
+                        start = now,
+                        end = now,
                         title = "Event 1"
                     ),
                     Event(
-                        duration = EventDuration.AllDay(
-                            start = now.date,
-                            end = now.date
-                        ),
+                        duration = EventDuration.AllDay,
+                        start = now,
+                        end = now,
                         title = "Event 2"
                     ),
                     Event(
-                        duration = EventDuration.Specific(
-                            start = now.date.atTime(LocalTime(13, 13)),
-                            end = now.date.atTime(LocalTime(16, 16))
-                        ),
+                        duration = EventDuration.Specific,
+                        start = now.atTime(LocalTime(13, 13)),
+                        end = now.atTime(LocalTime(16, 16)),
                         title = "Event 3"
                     ),
                 ),
-                now.date.minus(1, DateTimeUnit.DAY) to listOf(
+                nowDateTime.date.minus(1, DateTimeUnit.DAY) to listOf(
                     Event(
-                        duration = EventDuration.Specific(
-                            start = LocalTime(13, 13).atDate(now.date.minus(1, DateTimeUnit.DAY)),
-                            end = LocalTime(23, 59, 59).atDate(now.date.plus(1, DateTimeUnit.DAY))
-                        ),
+                        duration = EventDuration.Specific,
+                        start = now.atTime(13, 13).minus(1.days),
+                        end = now.atTime(16, 16).plus(1.days),
                         title = "Event 2"
                     ),
                 ),
-                now.date.plus(1, DateTimeUnit.DAY) to listOf(
+                nowDateTime.date.plus(1, DateTimeUnit.DAY) to listOf(
                     Event(
-                        duration = EventDuration.Specific(
-                            start = LocalTime(0, 0).atDate(now.date.plus(1, DateTimeUnit.DAY)),
-                            end = LocalTime(16, 16).atDate(now.date.plus(1, DateTimeUnit.DAY))
-                        ),
+                        duration = EventDuration.Specific,
+                        start = now.atTime(0, 0).plus(1.days),
+                        end = now.atTime(16, 16).plus(1.days),
                         title = "Event 2"
                     ),
                 ),
             ),
-            selectedDate = now.date
+            selectedDate = nowDateTime.date
         ),
     )
 }

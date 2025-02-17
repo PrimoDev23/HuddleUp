@@ -2,12 +2,19 @@ package dev.primodev.huddleup.feature.eventcreation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.primodev.huddleup.domain.entity.event.Event
+import dev.primodev.huddleup.domain.entity.event.EventDuration
+import dev.primodev.huddleup.domain.usecase.event.InsertEventUseCase
 import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationInputState
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
 import dev.primodev.huddleup.navigation.AppNavigator
+import dev.primodev.huddleup.triggerables.submittable.SubmitResult
+import dev.primodev.huddleup.triggerables.submittable.onEachSuccess
+import dev.primodev.huddleup.triggerables.submittable.parametricSubmittable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -17,10 +24,14 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.hours
+import kotlin.uuid.Uuid
 
 class EventCreationViewModel(
-    private val navigator: AppNavigator
+    private val insertEventUseCase: InsertEventUseCase,
+    private val navigator: AppNavigator,
 ) : ViewModel() {
+
+    private val uuid = Uuid.random()
 
     private val now = Clock.System.now()
     private val initialStart = now
@@ -32,17 +43,53 @@ class EventCreationViewModel(
             allDayChecked = false,
             start = initialStart,
             end = initialEnd,
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.None
+            eventCreationDialog = EventCreationDialog.None
         )
     )
 
-    val uiState = inputState.map { inputState ->
+    private val event = inputState.map { state ->
+        Event(
+            id = uuid,
+            duration = if (state.allDayChecked) {
+                EventDuration.AllDay
+            } else {
+                EventDuration.Specific
+            },
+            start = state.start,
+            end = state.end,
+            title = state.title
+        )
+    }
+
+    private val saveSubmittable = parametricSubmittable(params = event) { event ->
+        insertEventUseCase.execute(event)
+    }
+
+    private val saveFlow = saveSubmittable
+        .flow
+        .onEachSuccess {
+            navigator.navigateUp()
+        }
+
+    val uiState = combine(
+        inputState,
+        saveFlow
+    ) { inputState, saveResult ->
+        val dialog = when (saveResult) {
+            SubmitResult.Idle,
+            is SubmitResult.Success,
+                -> inputState.eventCreationDialog
+
+            SubmitResult.Loading -> EventCreationDialog.IsSaving
+            is SubmitResult.Error -> EventCreationDialog.SavingError
+        }
+
         EventCreationUiState(
             title = inputState.title,
             allDayChecked = inputState.allDayChecked,
             start = inputState.start,
             end = inputState.end,
-            currentDateTimePickerDialog = inputState.currentDateTimePickerDialog
+            eventCreationDialog = dialog
         )
     }.stateIn(
         scope = viewModelScope,
@@ -52,7 +99,7 @@ class EventCreationViewModel(
             allDayChecked = false,
             start = initialStart,
             end = initialEnd,
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.None
+            eventCreationDialog = EventCreationDialog.None
         )
     )
 
@@ -82,9 +129,9 @@ class EventCreationViewModel(
         }
     }
 
-    private fun onCurrentDateTimeDialogChange(dialog: CurrentDateTimePickerDialog) {
+    private fun onCurrentDateTimeDialogChange(dialog: EventCreationDialog) {
         inputState.update {
-            it.copy(currentDateTimePickerDialog = dialog)
+            it.copy(eventCreationDialog = dialog)
         }
     }
 
@@ -134,11 +181,7 @@ class EventCreationViewModel(
 
     private fun onSaveClick() {
         viewModelScope.launch {
-            val data = uiState.value
-
-            // TODO: Implement Saving
-
-            navigator.navigateUp()
+            saveSubmittable.submit()
         }
     }
 

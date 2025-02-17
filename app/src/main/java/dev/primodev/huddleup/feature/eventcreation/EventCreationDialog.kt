@@ -1,9 +1,11 @@
 package dev.primodev.huddleup.feature.eventcreation
 
-enum class CurrentDateTimePickerDialog {
+enum class EventCreationDialog {
     None,
     StartDate,
     StartTime,
     EndDate,
-    EndTime
+    EndTime,
+    IsSaving,
+    SavingError,
 }

@@ -13,6 +13,9 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/data" />
             <option value="$PROJECT_DIR$/domain" />
+            <option value="$PROJECT_DIR$/shared" />
+            <option value="$PROJECT_DIR$/shared/appresult" />
+            <option value="$PROJECT_DIR$/shared/triggerables" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

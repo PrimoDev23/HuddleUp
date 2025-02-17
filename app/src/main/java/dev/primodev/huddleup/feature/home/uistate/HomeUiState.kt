@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDate
 
 sealed interface HomeUiState {
     data object InitLoading : HomeUiState
+    data object Error : HomeUiState
     data class Data(
         val events: Map<LocalDate, List<Event>>,
         val selectedDate: LocalDate,

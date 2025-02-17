@@ -6,9 +6,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -79,7 +79,7 @@ private fun EventCreationContent(
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.imePadding(),
         topBar = {
             TopAppBar(
                 title = {
@@ -120,9 +120,70 @@ private fun EventCreationContent(
                 allDayChecked = uiState.allDayChecked,
                 start = uiState.start,
                 end = uiState.end,
-                currentDateTimePickerDialog = uiState.currentDateTimePickerDialog,
                 onEvent = onEvent
             )
+        }
+    }
+
+    EventCreationDialogs(
+        uiState = uiState,
+        onEvent = onEvent
+    )
+}
+
+@Composable
+private fun EventCreationDialogs(
+    uiState: EventCreationUiState,
+    onEvent: (EventCreationUiEvent) -> Unit,
+) {
+    when (uiState.eventCreationDialog) {
+        EventCreationDialog.None -> Unit
+        EventCreationDialog.StartDate -> DatePickerDialog(
+            selectedDate = uiState.start,
+            onDismissRequest = {
+                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+            },
+            onConfirmClick = {
+                onEvent(EventCreationUiEvent.StartChanged(it))
+            }
+        )
+
+        EventCreationDialog.StartTime -> TimePickerDialog(
+            selectedTime = uiState.start,
+            onDismissRequest = {
+                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+            },
+            onConfirmClick = {
+                onEvent(EventCreationUiEvent.StartChanged(it))
+            }
+        )
+
+        EventCreationDialog.EndDate -> DatePickerDialog(
+            selectedDate = uiState.end,
+            onDismissRequest = {
+                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+            },
+            onConfirmClick = {
+                onEvent(EventCreationUiEvent.EndChanged(it))
+            }
+        )
+
+        EventCreationDialog.EndTime -> TimePickerDialog(
+            selectedTime = uiState.end,
+            onDismissRequest = {
+                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+            },
+            onConfirmClick = {
+                onEvent(EventCreationUiEvent.EndChanged(it))
+            }
+        )
+
+        EventCreationDialog.IsSaving -> {
+            println("Saving")
+        }
+
+        EventCreationDialog.SavingError -> {
+            println("Saving Error")
         }
     }
 }
@@ -155,7 +216,6 @@ private fun EventCreationDateSelection(
     allDayChecked: Boolean,
     start: Instant,
     end: Instant,
-    currentDateTimePickerDialog: CurrentDateTimePickerDialog,
     onEvent: (EventCreationUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -207,7 +267,7 @@ private fun EventCreationDateSelection(
                         onStartClick = {
                             onEvent(
                                 EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    CurrentDateTimePickerDialog.StartDate
+                                    EventCreationDialog.StartDate
                                 )
                             )
                         },
@@ -215,7 +275,7 @@ private fun EventCreationDateSelection(
                         onEndClick = {
                             onEvent(
                                 EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    CurrentDateTimePickerDialog.EndDate
+                                    EventCreationDialog.EndDate
                                 )
                             )
                         }
@@ -229,14 +289,14 @@ private fun EventCreationDateSelection(
                         onStartDateClick = {
                             onEvent(
                                 EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    CurrentDateTimePickerDialog.StartDate
+                                    EventCreationDialog.StartDate
                                 )
                             )
                         },
                         onStartTimeClick = {
                             onEvent(
                                 EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    CurrentDateTimePickerDialog.StartTime
+                                    EventCreationDialog.StartTime
                                 )
                             )
                         },
@@ -244,14 +304,14 @@ private fun EventCreationDateSelection(
                         onEndDateClick = {
                             onEvent(
                                 EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    CurrentDateTimePickerDialog.EndDate
+                                    EventCreationDialog.EndDate
                                 )
                             )
                         },
                         onEndTimeClick = {
                             onEvent(
                                 EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    CurrentDateTimePickerDialog.EndTime
+                                    EventCreationDialog.EndTime
                                 )
                             )
                         },
@@ -259,49 +319,6 @@ private fun EventCreationDateSelection(
                 }
             }
         }
-    }
-
-    when (currentDateTimePickerDialog) {
-        CurrentDateTimePickerDialog.None -> Unit
-        CurrentDateTimePickerDialog.StartDate -> DatePickerDialog(
-            selectedDate = start,
-            onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(CurrentDateTimePickerDialog.None))
-            },
-            onConfirmClick = {
-                onEvent(EventCreationUiEvent.StartChanged(it))
-            }
-        )
-
-        CurrentDateTimePickerDialog.StartTime -> TimePickerDialog(
-            selectedTime = start,
-            onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(CurrentDateTimePickerDialog.None))
-            },
-            onConfirmClick = {
-                onEvent(EventCreationUiEvent.StartChanged(it))
-            }
-        )
-
-        CurrentDateTimePickerDialog.EndDate -> DatePickerDialog(
-            selectedDate = end,
-            onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(CurrentDateTimePickerDialog.None))
-            },
-            onConfirmClick = {
-                onEvent(EventCreationUiEvent.EndChanged(it))
-            }
-        )
-
-        CurrentDateTimePickerDialog.EndTime -> TimePickerDialog(
-            selectedTime = end,
-            onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(CurrentDateTimePickerDialog.None))
-            },
-            onConfirmClick = {
-                onEvent(EventCreationUiEvent.EndChanged(it))
-            }
-        )
     }
 }
 
@@ -495,14 +512,14 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             allDayChecked = false,
             start = Clock.System.now(),
             end = Clock.System.now(),
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.None
+            eventCreationDialog = EventCreationDialog.None
         ),
         EventCreationUiState(
             title = "Title",
             allDayChecked = true,
             start = Clock.System.now(),
             end = Clock.System.now().plus(1.days).atTime(13, 13),
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.None
+            eventCreationDialog = EventCreationDialog.None
         ),
         EventCreationUiState(
             title = "Title",
@@ -511,7 +528,7 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             end = Clock.System.now().plus(
                 1.days
             ).atTime(13, 13),
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.None
+            eventCreationDialog = EventCreationDialog.None
         ),
         EventCreationUiState(
             title = "Title",
@@ -520,7 +537,7 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             end = Clock.System.now().plus(
                 1.days
             ).atTime(13, 13),
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.StartDate
+            eventCreationDialog = EventCreationDialog.StartDate
         ),
         EventCreationUiState(
             title = "Title",
@@ -529,7 +546,7 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             end = Clock.System.now().plus(
                 1.days
             ).atTime(13, 13),
-            currentDateTimePickerDialog = CurrentDateTimePickerDialog.EndDate
+            eventCreationDialog = EventCreationDialog.EndDate
         ),
     )
 

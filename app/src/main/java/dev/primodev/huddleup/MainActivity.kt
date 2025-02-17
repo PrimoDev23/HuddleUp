@@ -9,14 +9,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import dev.primodev.huddleup.data.di.databaseModule
+import dev.primodev.huddleup.data.di.datasourceModule
+import dev.primodev.huddleup.data.di.repositoryModule
 import dev.primodev.huddleup.di.navigationModule
 import dev.primodev.huddleup.di.viewModelModule
+import dev.primodev.huddleup.domain.di.useCaseModule
 import dev.primodev.huddleup.feature.eventcreation.eventCreationGraph
 import dev.primodev.huddleup.feature.home.HomeDestination
 import dev.primodev.huddleup.feature.home.homeGraph
 import dev.primodev.huddleup.navigation.NavEvent
 import dev.primodev.huddleup.navigation.NavEventProvider
 import dev.primodev.huddleup.theme.HuddleUpTheme
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
 
@@ -27,9 +33,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             KoinApplication(
                 application = {
+                    androidContext(this@MainActivity)
+                    androidLogger()
+
                     modules(
                         navigationModule,
-                        viewModelModule
+                        viewModelModule,
+                        databaseModule,
+                        datasourceModule,
+                        repositoryModule,
+                        useCaseModule
                     )
                 }
             ) {

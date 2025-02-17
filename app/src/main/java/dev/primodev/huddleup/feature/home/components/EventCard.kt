@@ -18,12 +18,10 @@ import androidx.compose.ui.unit.dp
 import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
-import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.extensions.toLocalizedString
 import dev.primodev.huddleup.theme.HuddleUpTheme
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.atDate
 
 @Composable
 internal fun EventCard(
@@ -43,17 +41,17 @@ internal fun EventCard(
             )
 
             Column {
-                when (val duration = event.duration) {
-                    is EventDuration.AllDay -> {
+                when (event.duration) {
+                    EventDuration.AllDay -> {
                         Text(
                             text = stringResource(R.string.event_card_all_day),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
 
-                    is EventDuration.Specific -> {
-                        val start = duration.start.toLocalizedString()
-                        val end = duration.end.toLocalizedString()
+                    EventDuration.Specific -> {
+                        val start = event.start.toLocalizedString()
+                        val end = event.end.toLocalizedString()
 
                         Text(
                             text = start,
@@ -90,21 +88,19 @@ private fun EventCardPreview(
 }
 
 private class EventProvider : PreviewParameterProvider<Event> {
-    private val now = Clock.System.nowAsDateTime()
+    private val now = Clock.System.now()
 
     override val values: Sequence<Event> = sequenceOf(
         Event(
-            duration = EventDuration.Specific(
-                start = LocalTime(13, 13).atDate(now.date),
-                end = LocalTime(16, 16).atDate(now.date)
-            ),
+            duration = EventDuration.Specific,
+            start = now.atTime(13, 13),
+            end = now.atTime(16, 16),
             title = "Specific event one day"
         ),
         Event(
-            duration = EventDuration.AllDay(
-                start = now.date,
-                end = now.date
-            ),
+            duration = EventDuration.AllDay,
+            start = now,
+            end = now,
             title = "All day event"
         ),
     )

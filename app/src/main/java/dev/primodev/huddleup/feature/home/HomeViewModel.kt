@@ -2,8 +2,9 @@ package dev.primodev.huddleup.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.primodev.huddleup.appresult.AppResult
 import dev.primodev.huddleup.domain.entity.event.Event
-import dev.primodev.huddleup.domain.entity.event.EventDuration
+import dev.primodev.huddleup.domain.usecase.event.GetAllEventsUseCase
 import dev.primodev.huddleup.extensions.nowAsDateTime
 import dev.primodev.huddleup.feature.eventcreation.EventCreationDestination
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
@@ -12,68 +13,34 @@ import dev.primodev.huddleup.navigation.AppNavigator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.atDate
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class HomeViewModel(
+    private val getAllEventsUseCase: GetAllEventsUseCase,
     private val navigator: AppNavigator,
 ) : ViewModel() {
 
     private val selectedDate = MutableStateFlow(Clock.System.nowAsDateTime().date)
 
-    private val events = flowOf(
-        listOf(
-            Event(
-                duration = EventDuration.AllDay(
-                    start = Clock.System.nowAsDateTime().date,
-                    end = Clock.System.nowAsDateTime().date.plus(
-                        value = 1,
-                        unit = DateTimeUnit.DAY
-                    )
-                ),
-                title = "All day event"
-            ),
-            Event(
-                duration = EventDuration.Specific(
-                    start = Clock.System.nowAsDateTime().let { dateTime ->
-                        LocalTime(13, 13).atDate(dateTime.date.minus(1, DateTimeUnit.DAY))
-                    },
-                    end = Clock.System.nowAsDateTime().let { dateTime ->
-                        LocalTime(16, 16).atDate(dateTime.date.plus(1, DateTimeUnit.DAY))
-                    }
-                ),
-                title = "Specific event multiple days"
-            ),
-            Event(
-                duration = EventDuration.Specific(
-                    start = Clock.System.nowAsDateTime().let { dateTime ->
-                        LocalTime(13, 13).atDate(dateTime.date)
-                    },
-                    end = Clock.System.nowAsDateTime().let { dateTime ->
-                        LocalTime(16, 16).atDate(dateTime.date)
-                    }
-                ),
-                title = "Specific event same day"
-            ),
-        )
-    )
+    private val events = getAllEventsUseCase.execute()
 
     val uiState = combine(
         selectedDate,
         events
-    ) { selectedDate, events ->
-        HomeUiState.Data(
-            events = events.prepareEventMap(),
-            selectedDate = selectedDate
-        )
+    ) { selectedDate, eventsResult ->
+        when (eventsResult) {
+            AppResult.Loading -> HomeUiState.InitLoading
+            is AppResult.Error -> HomeUiState.Error
+            is AppResult.Success -> HomeUiState.Data(
+                events = eventsResult.value.prepareEventMap(),
+                selectedDate = selectedDate
+            )
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
@@ -105,9 +72,6 @@ class HomeViewModel(
                 event.toEventsPerDay()
             }
             .groupBy { event ->
-                when (val duration = event.duration) {
-                    is EventDuration.AllDay -> duration.start
-                    is EventDuration.Specific -> duration.start.date
-                }
+                event.start.toLocalDateTime(TimeZone.UTC).date
             }
 }

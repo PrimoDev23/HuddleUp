@@ -41,8 +41,10 @@ android {
 }
 
 dependencies {
-
     implementation(projects.domain)
+    implementation(projects.data)
+    implementation(projects.shared.appresult)
+    implementation(projects.shared.triggerables)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

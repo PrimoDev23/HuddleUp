@@ -21,7 +21,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 class HomeViewModel(
-    private val getAllEventsUseCase: GetAllEventsUseCase,
+    getAllEventsUseCase: GetAllEventsUseCase,
     private val navigator: AppNavigator,
 ) : ViewModel() {
 

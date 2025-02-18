@@ -19,4 +19,13 @@
     <string name="home_today_button">Jump to today\'s date</string>
     <string name="event_creation_specific">Specific</string>
     <string name="event_creation_title_error">Please enter a title</string>
+    <string name="event_creation_saving_dialog_text">Saving event</string>
+    <string name="event_creation_saving_error_dialog_confirm">OK</string>
+    <string name="event_creation_saving_error_dialog_title">Saving failed</string>
+    <string name="event_creation_saving_error_dialog_text">There was an error saving your event. Please try again…</string>
+    <string name="event_creation_unsaved_dialog_confirm">Discard</string>
+    <string name="event_creation_unsaved_dialog_dismiss">Cancel</string>
+    <string name="event_creation_unsaved_dialog_title">Discard changes?</string>
+    <string name="event_creation_unsaved_dialog_text">There are unsaved changes. Are you sure you want to discard them?</string>
+    <string name="event_creation_back">Navigate back</string>
 </resources>

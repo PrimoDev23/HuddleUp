@@ -8,4 +8,5 @@ enum class EventCreationDialog {
     EndTime,
     IsSaving,
     SavingError,
+    UnsavedChanges
 }

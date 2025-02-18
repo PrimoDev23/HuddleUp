@@ -1,6 +1,7 @@
 package dev.primodev.huddleup.feature.eventcreation
 
 import android.text.format.DateFormat
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
@@ -15,11 +16,13 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -46,6 +49,9 @@ import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.feature.eventcreation.components.DatePickerDialog
+import dev.primodev.huddleup.feature.eventcreation.components.EventCreationSavingDialog
+import dev.primodev.huddleup.feature.eventcreation.components.EventCreationSavingErrorDialog
+import dev.primodev.huddleup.feature.eventcreation.components.EventCreationUnsavedChangesDialog
 import dev.primodev.huddleup.feature.eventcreation.components.SliderButton
 import dev.primodev.huddleup.feature.eventcreation.components.TimePickerDialog
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
@@ -82,10 +88,26 @@ private fun EventCreationContent(
     onEvent: (EventCreationUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    BackHandler {
+        onEvent(EventCreationUiEvent.Back)
+    }
+
     Scaffold(
         modifier = modifier.imePadding(),
         topBar = {
             TopAppBar(
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            onEvent(EventCreationUiEvent.Back)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.event_creation_back)
+                        )
+                    }
+                },
                 title = {
                     Text(text = stringResource(R.string.event_creation_title))
                 }
@@ -146,7 +168,7 @@ private fun EventCreationDialogs(
         EventCreationDialog.StartDate -> DatePickerDialog(
             selectedDate = uiState.start,
             onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+                onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
                 onEvent(EventCreationUiEvent.StartChanged(it))
@@ -156,7 +178,7 @@ private fun EventCreationDialogs(
         EventCreationDialog.StartTime -> TimePickerDialog(
             selectedTime = uiState.start,
             onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+                onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
                 onEvent(EventCreationUiEvent.StartChanged(it))
@@ -166,7 +188,7 @@ private fun EventCreationDialogs(
         EventCreationDialog.EndDate -> DatePickerDialog(
             selectedDate = uiState.end,
             onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+                onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
                 onEvent(EventCreationUiEvent.EndChanged(it))
@@ -176,7 +198,7 @@ private fun EventCreationDialogs(
         EventCreationDialog.EndTime -> TimePickerDialog(
             selectedTime = uiState.end,
             onDismissRequest = {
-                onEvent(EventCreationUiEvent.CurrentDateTimeDialogChange(EventCreationDialog.None))
+                onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
                 onEvent(EventCreationUiEvent.EndChanged(it))
@@ -184,11 +206,26 @@ private fun EventCreationDialogs(
         )
 
         EventCreationDialog.IsSaving -> {
-            println("Saving")
+            EventCreationSavingDialog()
         }
 
         EventCreationDialog.SavingError -> {
-            println("Saving Error")
+            EventCreationSavingErrorDialog(
+                onDismissRequest = {
+                    onEvent(EventCreationUiEvent.DialogDismissed)
+                },
+            )
+        }
+
+        EventCreationDialog.UnsavedChanges -> {
+            EventCreationUnsavedChangesDialog(
+                onDismissRequest = {
+                    onEvent(EventCreationUiEvent.DialogDismissed)
+                },
+                onConfirmClick = {
+                    onEvent(EventCreationUiEvent.DiscardClick)
+                }
+            )
         }
     }
 }
@@ -292,19 +329,11 @@ private fun EventCreationDateSelection(
                             modifier = baseModifier,
                             start = start,
                             onStartClick = {
-                                onEvent(
-                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                        EventCreationDialog.StartDate
-                                    )
-                                )
+                                onEvent(EventCreationUiEvent.StartDateClick)
                             },
                             end = end,
                             onEndClick = {
-                                onEvent(
-                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                        EventCreationDialog.EndDate
-                                    )
-                                )
+                                onEvent(EventCreationUiEvent.EndDateClick)
                             }
                         )
                     }
@@ -314,33 +343,17 @@ private fun EventCreationDateSelection(
                             modifier = baseModifier,
                             start = start,
                             onStartDateClick = {
-                                onEvent(
-                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                        EventCreationDialog.StartDate
-                                    )
-                                )
+                                onEvent(EventCreationUiEvent.StartDateClick)
                             },
                             onStartTimeClick = {
-                                onEvent(
-                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                        EventCreationDialog.StartTime
-                                    )
-                                )
+                                onEvent(EventCreationUiEvent.StartTimeClick)
                             },
                             end = end,
                             onEndDateClick = {
-                                onEvent(
-                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                        EventCreationDialog.EndDate
-                                    )
-                                )
+                                onEvent(EventCreationUiEvent.EndDateClick)
                             },
                             onEndTimeClick = {
-                                onEvent(
-                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                        EventCreationDialog.EndTime
-                                    )
-                                )
+                                onEvent(EventCreationUiEvent.EndTimeClick)
                             },
                         )
                     }
@@ -607,6 +620,36 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
                 1.days
             ).atTime(13, 13),
             currentDialog = EventCreationDialog.EndTime,
+            uiError = null
+        ),
+        EventCreationUiState(
+            title = "Title",
+            duration = EventDuration.Specific,
+            start = Clock.System.now(),
+            end = Clock.System.now().plus(
+                1.days
+            ).atTime(13, 13),
+            currentDialog = EventCreationDialog.IsSaving,
+            uiError = null
+        ),
+        EventCreationUiState(
+            title = "Title",
+            duration = EventDuration.Specific,
+            start = Clock.System.now(),
+            end = Clock.System.now().plus(
+                1.days
+            ).atTime(13, 13),
+            currentDialog = EventCreationDialog.SavingError,
+            uiError = null
+        ),
+        EventCreationUiState(
+            title = "Title",
+            duration = EventDuration.Specific,
+            start = Clock.System.now(),
+            end = Clock.System.now().plus(
+                1.days
+            ).atTime(13, 13),
+            currentDialog = EventCreationDialog.UnsavedChanges,
             uiError = null
         ),
     )

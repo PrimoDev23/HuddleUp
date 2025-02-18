@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -41,14 +42,14 @@ class EventCreationViewModel(
     private val initialEnd = now.plus(1.hours)
 
     private val currentDialog = MutableStateFlow(EventCreationDialog.None)
-    private val inputState = MutableStateFlow(
-        EventCreationInputState(
-            title = "",
-            duration = EventDuration.Specific,
-            start = initialStart,
-            end = initialEnd,
-        )
+
+    private val initialInputState = EventCreationInputState(
+        title = "",
+        duration = EventDuration.Specific,
+        start = initialStart,
+        end = initialEnd,
     )
+    private val inputState = MutableStateFlow(initialInputState)
 
     private val event = inputState.map { state ->
         Event(
@@ -59,6 +60,31 @@ class EventCreationViewModel(
             title = state.title
         )
     }
+
+    private val hasChanges = inputState.map { state ->
+        state != initialInputState
+    }
+
+    private val backSubmittable = parametricSubmittable(hasChanges) { hasChanges ->
+        if (hasChanges) {
+            flowOf(AppResult.Error())
+        } else {
+            flowOf(AppResult.Success(Unit))
+        }
+    }
+
+    private val backFlow = backSubmittable
+        .flow
+        .onEach { result ->
+            when (result) {
+                SubmitResult.Idle,
+                SubmitResult.Loading,
+                    -> Unit
+
+                is SubmitResult.Error -> showDialog(EventCreationDialog.UnsavedChanges)
+                is SubmitResult.Success -> navigator.navigateUp()
+            }
+        }
 
     private val saveSubmittable = parametricSubmittable(params = event) { event ->
         val errorReason = event.verify()
@@ -122,17 +148,32 @@ class EventCreationViewModel(
         )
     )
 
+    init {
+        backFlow.launchIn(viewModelScope)
+    }
+
     fun onEvent(event: EventCreationUiEvent) {
         when (event) {
+            EventCreationUiEvent.Back -> onBack()
+
             is EventCreationUiEvent.TitleChange -> onTitleChange(event.title)
             is EventCreationUiEvent.DurationChanged -> onAllDayCheckedChange(event.duration)
-            is EventCreationUiEvent.CurrentDateTimeDialogChange -> onCurrentDateTimeDialogChange(
-                event.dialog
-            )
+            EventCreationUiEvent.StartDateClick -> onStartDateClick()
+            EventCreationUiEvent.StartTimeClick -> onStartTimeClick()
+            EventCreationUiEvent.EndDateClick -> onEndDateClick()
+            EventCreationUiEvent.EndTimeClick -> onEndTimeClick()
+            EventCreationUiEvent.DialogDismissed -> onDialogDismissed()
 
             is EventCreationUiEvent.StartChanged -> onStartChanged(event.instant)
             is EventCreationUiEvent.EndChanged -> onEndChanged(event.instant)
             is EventCreationUiEvent.SaveClick -> onSaveClick()
+            EventCreationUiEvent.DiscardClick -> onDiscardClick()
+        }
+    }
+
+    private fun onBack() {
+        viewModelScope.launch {
+            backSubmittable.submit()
         }
     }
 
@@ -148,9 +189,33 @@ class EventCreationViewModel(
         }
     }
 
-    private fun onCurrentDateTimeDialogChange(dialog: EventCreationDialog) {
+    private fun onStartDateClick() {
         viewModelScope.launch {
-            showDialog(dialog)
+            showDialog(EventCreationDialog.StartDate)
+        }
+    }
+
+    private fun onStartTimeClick() {
+        viewModelScope.launch {
+            showDialog(EventCreationDialog.StartTime)
+        }
+    }
+
+    private fun onEndDateClick() {
+        viewModelScope.launch {
+            showDialog(EventCreationDialog.EndDate)
+        }
+    }
+
+    private fun onEndTimeClick() {
+        viewModelScope.launch {
+            showDialog(EventCreationDialog.EndTime)
+        }
+    }
+
+    private fun onDialogDismissed() {
+        viewModelScope.launch {
+            showDialog(EventCreationDialog.None)
         }
     }
 
@@ -201,6 +266,12 @@ class EventCreationViewModel(
     private fun onSaveClick() {
         viewModelScope.launch {
             saveSubmittable.submit()
+        }
+    }
+
+    private fun onDiscardClick() {
+        viewModelScope.launch {
+            navigator.navigateUp()
         }
     }
 

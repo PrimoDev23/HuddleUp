@@ -20,7 +20,7 @@ fun <Entity, Domain> executeFlowDatabaseRequest(
 
                     AppResult.Success(value = domain)
                 }.catch { throwable ->
-                    AppResult.Error(throwable = throwable)
+                    AppResult.Error(reason = ErrorReason.Exception(throwable))
                 }
         )
     }
@@ -39,7 +39,7 @@ fun <Entity, Domain> executeSuspendingDatabaseRequest(
 
             emit(AppResult.Success(value = domain))
         } catch (throwable: Throwable) {
-            emit(AppResult.Error(throwable = throwable))
+            emit(AppResult.Error(reason = ErrorReason.Exception(throwable)))
         }
     }
 }

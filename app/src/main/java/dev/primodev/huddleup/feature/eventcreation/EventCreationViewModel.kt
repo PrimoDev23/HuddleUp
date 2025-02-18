@@ -2,20 +2,23 @@ package dev.primodev.huddleup.feature.eventcreation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.primodev.huddleup.appresult.AppResult
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.domain.usecase.event.InsertEventUseCase
 import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationInputState
+import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
 import dev.primodev.huddleup.navigation.AppNavigator
 import dev.primodev.huddleup.triggerables.submittable.SubmitResult
-import dev.primodev.huddleup.triggerables.submittable.onEachSuccess
 import dev.primodev.huddleup.triggerables.submittable.parametricSubmittable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,24 +40,20 @@ class EventCreationViewModel(
     private val initialStart = now
     private val initialEnd = now.plus(1.hours)
 
+    private val currentDialog = MutableStateFlow(EventCreationDialog.None)
     private val inputState = MutableStateFlow(
         EventCreationInputState(
             title = "",
-            allDayChecked = false,
+            duration = EventDuration.Specific,
             start = initialStart,
             end = initialEnd,
-            eventCreationDialog = EventCreationDialog.None
         )
     )
 
     private val event = inputState.map { state ->
         Event(
             id = uuid,
-            duration = if (state.allDayChecked) {
-                EventDuration.AllDay
-            } else {
-                EventDuration.Specific
-            },
+            duration = state.duration,
             start = state.start,
             end = state.end,
             title = state.title
@@ -62,51 +61,71 @@ class EventCreationViewModel(
     }
 
     private val saveSubmittable = parametricSubmittable(params = event) { event ->
-        insertEventUseCase.execute(event)
+        val errorReason = event.verify()
+
+        if (errorReason == null) {
+            insertEventUseCase.execute(event)
+        } else {
+            flowOf(AppResult.Error(reason = errorReason))
+        }
     }
 
     private val saveFlow = saveSubmittable
         .flow
-        .onEachSuccess {
-            navigator.navigateUp()
+        .onEach { result ->
+            when (result) {
+                SubmitResult.Idle -> Unit
+                is SubmitResult.Success -> navigator.navigateUp()
+
+                SubmitResult.Loading -> showDialog(EventCreationDialog.IsSaving)
+                is SubmitResult.Error -> showDialog(EventCreationDialog.SavingError)
+            }
         }
 
     val uiState = combine(
+        currentDialog,
         inputState,
         saveFlow
-    ) { inputState, saveResult ->
-        val dialog = when (saveResult) {
+    ) { currentDialog, inputState, saveResult ->
+        val error = when (saveResult) {
             SubmitResult.Idle,
+            SubmitResult.Loading,
             is SubmitResult.Success,
-                -> inputState.eventCreationDialog
+                -> null
 
-            SubmitResult.Loading -> EventCreationDialog.IsSaving
-            is SubmitResult.Error -> EventCreationDialog.SavingError
+            is SubmitResult.Error -> {
+                when (saveResult.reason) {
+                    EventCreationErrorReason.TitleBlank -> EventCreationUiError.TitleBlank
+                    else -> null
+                }
+            }
         }
 
         EventCreationUiState(
             title = inputState.title,
-            allDayChecked = inputState.allDayChecked,
+            duration = inputState.duration,
             start = inputState.start,
             end = inputState.end,
-            eventCreationDialog = dialog
+            currentDialog = currentDialog,
+            uiError = error
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = EventCreationUiState(
             title = "",
-            allDayChecked = false,
+            duration = EventDuration.Specific,
             start = initialStart,
             end = initialEnd,
-            eventCreationDialog = EventCreationDialog.None
+            currentDialog = EventCreationDialog.None,
+            uiError = null
         )
     )
 
     fun onEvent(event: EventCreationUiEvent) {
         when (event) {
             is EventCreationUiEvent.TitleChange -> onTitleChange(event.title)
-            is EventCreationUiEvent.AllDayCheckedChange -> onAllDayCheckedChange(event.checked)
+            is EventCreationUiEvent.DurationChanged -> onAllDayCheckedChange(event.duration)
             is EventCreationUiEvent.CurrentDateTimeDialogChange -> onCurrentDateTimeDialogChange(
                 event.dialog
             )
@@ -123,15 +142,15 @@ class EventCreationViewModel(
         }
     }
 
-    private fun onAllDayCheckedChange(checked: Boolean) {
+    private fun onAllDayCheckedChange(duration: EventDuration) {
         inputState.update {
-            it.copy(allDayChecked = checked)
+            it.copy(duration = duration)
         }
     }
 
     private fun onCurrentDateTimeDialogChange(dialog: EventCreationDialog) {
-        inputState.update {
-            it.copy(eventCreationDialog = dialog)
+        viewModelScope.launch {
+            showDialog(dialog)
         }
     }
 
@@ -182,6 +201,17 @@ class EventCreationViewModel(
     private fun onSaveClick() {
         viewModelScope.launch {
             saveSubmittable.submit()
+        }
+    }
+
+    private suspend fun showDialog(dialog: EventCreationDialog) {
+        currentDialog.emit(dialog)
+    }
+
+    private fun Event.verify(): EventCreationErrorReason? {
+        return when {
+            this.title.isBlank() -> EventCreationErrorReason.TitleBlank
+            else -> null
         }
     }
 

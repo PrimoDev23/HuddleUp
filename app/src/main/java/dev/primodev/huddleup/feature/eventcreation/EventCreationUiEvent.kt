@@ -1,10 +1,11 @@
 package dev.primodev.huddleup.feature.eventcreation
 
+import dev.primodev.huddleup.domain.entity.event.EventDuration
 import kotlinx.datetime.Instant
 
 sealed interface EventCreationUiEvent {
     data class TitleChange(val title: String) : EventCreationUiEvent
-    data class AllDayCheckedChange(val checked: Boolean) : EventCreationUiEvent
+    data class DurationChanged(val duration: EventDuration) : EventCreationUiEvent
     data class CurrentDateTimeDialogChange(val dialog: EventCreationDialog) :
         EventCreationUiEvent
 

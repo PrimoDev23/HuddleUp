@@ -48,6 +48,7 @@ import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.feature.eventcreation.components.DatePickerDialog
 import dev.primodev.huddleup.feature.eventcreation.components.SliderButton
 import dev.primodev.huddleup.feature.eventcreation.components.TimePickerDialog
+import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
 import dev.primodev.huddleup.theme.HuddleUpTheme
 import kotlinx.datetime.Clock
@@ -115,12 +116,13 @@ private fun EventCreationContent(
                 value = uiState.title,
                 onValueChange = {
                     onEvent(EventCreationUiEvent.TitleChange(it))
-                }
+                },
+                isError = uiState.uiError == EventCreationUiError.TitleBlank
             )
 
             EventCreationDateSelection(
                 modifier = Modifier.fillMaxWidth(),
-                allDayChecked = uiState.allDayChecked,
+                duration = uiState.duration,
                 start = uiState.start,
                 end = uiState.end,
                 onEvent = onEvent
@@ -139,7 +141,7 @@ private fun EventCreationDialogs(
     uiState: EventCreationUiState,
     onEvent: (EventCreationUiEvent) -> Unit,
 ) {
-    when (uiState.eventCreationDialog) {
+    when (uiState.currentDialog) {
         EventCreationDialog.None -> Unit
         EventCreationDialog.StartDate -> DatePickerDialog(
             selectedDate = uiState.start,
@@ -195,6 +197,7 @@ private fun EventCreationDialogs(
 private fun EventCreationTitleTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    isError: Boolean,
     modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
@@ -207,16 +210,22 @@ private fun EventCreationTitleTextField(
         leadingIcon = {
             Icon(
                 imageVector = Icons.Outlined.Create,
-                contentDescription = null
+                contentDescription = null,
             )
         },
-        singleLine = true
+        singleLine = true,
+        isError = isError,
+        supportingText = {
+            if (isError) {
+                Text(text = stringResource(R.string.event_creation_title_error))
+            }
+        }
     )
 }
 
 @Composable
 private fun EventCreationDateSelection(
-    allDayChecked: Boolean,
+    duration: EventDuration,
     start: Instant,
     end: Instant,
     onEvent: (EventCreationUiEvent) -> Unit,
@@ -230,130 +239,111 @@ private fun EventCreationDateSelection(
         ),
         shape = RoundedCornerShape(4.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val selectedItem = if (allDayChecked) {
-                EventDuration.AllDay
-            } else {
-                EventDuration.Specific
-            }
-
+        Column(modifier = Modifier.fillMaxWidth()) {
             SliderButton(
                 modifier = Modifier.fillMaxWidth(),
                 items = EventDuration.entries,
-                selectedItem = selectedItem
-            ) { duration ->
+                selectedItem = duration,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            ) { innerDuration ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable {
-                            onEvent(EventCreationUiEvent.AllDayCheckedChange(duration == EventDuration.AllDay))
+                            onEvent(EventCreationUiEvent.DurationChanged(innerDuration))
                         },
                     contentAlignment = Alignment.Center
                 ) {
                     val textColor by animateColorAsState(
-                        targetValue = if (selectedItem == duration) {
+                        targetValue = if (innerDuration == duration) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
                         label = "SliderButtonTextColor"
                     )
+                    val text = stringResource(
+                        when (innerDuration) {
+                            EventDuration.AllDay -> R.string.event_creation_all_day
+                            EventDuration.Specific -> R.string.event_creation_specific
+                        }
+                    )
 
                     Text(
-                        text = duration.toString(),
+                        text = text,
                         color = textColor
                     )
                 }
             }
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.spacedBy(16.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Icon(
-//                    painter = painterResource(R.drawable.ic_schedule_24px),
-//                    contentDescription = null
-//                )
-//
-//                Text(
-//                    modifier = Modifier.weight(1f),
-//                    text = stringResource(R.string.event_creation_all_day)
-//                )
-//
-//                Switch(
-//                    checked = allDayChecked,
-//                    onCheckedChange = {
-//                        onEvent(EventCreationUiEvent.AllDayCheckedChange(it))
-//                    }
-//                )
-//            }
 
             Crossfade(
                 modifier = Modifier.padding(16.dp),
-                targetState = allDayChecked
-            ) { innerChecked ->
+                targetState = duration
+            ) { innerDuration ->
                 val baseModifier = Modifier
                     .fillMaxWidth()
 
-                if (innerChecked) {
-                    EventCreationAllDaySettings(
-                        modifier = baseModifier.padding(horizontal = 40.dp),
-                        start = start,
-                        onStartClick = {
-                            onEvent(
-                                EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    EventCreationDialog.StartDate
+                when (innerDuration) {
+                    EventDuration.AllDay -> {
+                        EventCreationAllDaySettings(
+                            modifier = baseModifier,
+                            start = start,
+                            onStartClick = {
+                                onEvent(
+                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
+                                        EventCreationDialog.StartDate
+                                    )
                                 )
-                            )
-                        },
-                        end = end,
-                        onEndClick = {
-                            onEvent(
-                                EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    EventCreationDialog.EndDate
+                            },
+                            end = end,
+                            onEndClick = {
+                                onEvent(
+                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
+                                        EventCreationDialog.EndDate
+                                    )
                                 )
-                            )
-                        }
-                    )
-                } else {
-                    EventCreationSpecificSettings(
-                        modifier = baseModifier.padding(
-                            start = 40.dp
-                        ),
-                        start = start,
-                        onStartDateClick = {
-                            onEvent(
-                                EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    EventCreationDialog.StartDate
+                            }
+                        )
+                    }
+
+                    EventDuration.Specific -> {
+                        EventCreationSpecificSettings(
+                            modifier = baseModifier,
+                            start = start,
+                            onStartDateClick = {
+                                onEvent(
+                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
+                                        EventCreationDialog.StartDate
+                                    )
                                 )
-                            )
-                        },
-                        onStartTimeClick = {
-                            onEvent(
-                                EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    EventCreationDialog.StartTime
+                            },
+                            onStartTimeClick = {
+                                onEvent(
+                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
+                                        EventCreationDialog.StartTime
+                                    )
                                 )
-                            )
-                        },
-                        end = end,
-                        onEndDateClick = {
-                            onEvent(
-                                EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    EventCreationDialog.EndDate
+                            },
+                            end = end,
+                            onEndDateClick = {
+                                onEvent(
+                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
+                                        EventCreationDialog.EndDate
+                                    )
                                 )
-                            )
-                        },
-                        onEndTimeClick = {
-                            onEvent(
-                                EventCreationUiEvent.CurrentDateTimeDialogChange(
-                                    EventCreationDialog.EndTime
+                            },
+                            onEndTimeClick = {
+                                onEvent(
+                                    EventCreationUiEvent.CurrentDateTimeDialogChange(
+                                        EventCreationDialog.EndTime
+                                    )
                                 )
-                            )
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -547,44 +537,77 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
     override val values: Sequence<EventCreationUiState> = sequenceOf(
         EventCreationUiState(
             title = "",
-            allDayChecked = false,
+            duration = EventDuration.Specific,
             start = Clock.System.now(),
             end = Clock.System.now(),
-            eventCreationDialog = EventCreationDialog.None
+            currentDialog = EventCreationDialog.None,
+            uiError = null
+        ),
+        EventCreationUiState(
+            title = "",
+            duration = EventDuration.Specific,
+            start = Clock.System.now(),
+            end = Clock.System.now(),
+            currentDialog = EventCreationDialog.None,
+            uiError = EventCreationUiError.TitleBlank
         ),
         EventCreationUiState(
             title = "Title",
-            allDayChecked = true,
+            duration = EventDuration.AllDay,
             start = Clock.System.now(),
             end = Clock.System.now().plus(1.days).atTime(13, 13),
-            eventCreationDialog = EventCreationDialog.None
+            currentDialog = EventCreationDialog.None,
+            uiError = null
         ),
         EventCreationUiState(
             title = "Title",
-            allDayChecked = false,
+            duration = EventDuration.Specific,
             start = Clock.System.now(),
             end = Clock.System.now().plus(
                 1.days
             ).atTime(13, 13),
-            eventCreationDialog = EventCreationDialog.None
+            currentDialog = EventCreationDialog.None,
+            uiError = null
         ),
         EventCreationUiState(
             title = "Title",
-            allDayChecked = false,
+            duration = EventDuration.Specific,
             start = Clock.System.now(),
             end = Clock.System.now().plus(
                 1.days
             ).atTime(13, 13),
-            eventCreationDialog = EventCreationDialog.StartDate
+            currentDialog = EventCreationDialog.StartDate,
+            uiError = null
         ),
         EventCreationUiState(
             title = "Title",
-            allDayChecked = false,
+            duration = EventDuration.Specific,
             start = Clock.System.now(),
             end = Clock.System.now().plus(
                 1.days
             ).atTime(13, 13),
-            eventCreationDialog = EventCreationDialog.EndDate
+            currentDialog = EventCreationDialog.StartTime,
+            uiError = null
+        ),
+        EventCreationUiState(
+            title = "Title",
+            duration = EventDuration.Specific,
+            start = Clock.System.now(),
+            end = Clock.System.now().plus(
+                1.days
+            ).atTime(13, 13),
+            currentDialog = EventCreationDialog.EndDate,
+            uiError = null
+        ),
+        EventCreationUiState(
+            title = "Title",
+            duration = EventDuration.Specific,
+            start = Clock.System.now(),
+            end = Clock.System.now().plus(
+                1.days
+            ).atTime(13, 13),
+            currentDialog = EventCreationDialog.EndTime,
+            uiError = null
         ),
     )
 

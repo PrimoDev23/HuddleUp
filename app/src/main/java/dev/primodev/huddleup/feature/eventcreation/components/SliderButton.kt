@@ -3,6 +3,7 @@ package dev.primodev.huddleup.feature.eventcreation.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.ExperimentalAnimatableApi
 import androidx.compose.animation.core.VectorConverter
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -37,6 +38,7 @@ fun <T> SliderButton(
     selectedItem: T,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(4.dp),
+    border: BorderStroke? = null,
     indicatorColor: Color = MaterialTheme.colorScheme.primary,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     item: @Composable BoxScope.(T) -> Unit,
@@ -44,7 +46,8 @@ fun <T> SliderButton(
     Surface(
         modifier = modifier.requiredHeight(48.dp),
         shape = shape,
-        color = backgroundColor
+        color = backgroundColor,
+        border = border
     ) {
         BoxWithConstraints(
             modifier = Modifier.fillMaxWidth()

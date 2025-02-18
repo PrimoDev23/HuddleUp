@@ -2,8 +2,11 @@ package dev.primodev.huddleup.feature.eventcreation
 
 import android.text.format.DateFormat
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -30,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -42,8 +43,10 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.primodev.huddleup.R
+import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.atTime
 import dev.primodev.huddleup.feature.eventcreation.components.DatePickerDialog
+import dev.primodev.huddleup.feature.eventcreation.components.SliderButton
 import dev.primodev.huddleup.feature.eventcreation.components.TimePickerDialog
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
 import dev.primodev.huddleup.theme.HuddleUpTheme
@@ -228,35 +231,70 @@ private fun EventCreationDateSelection(
         shape = RoundedCornerShape(4.dp)
     ) {
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_schedule_24px),
-                    contentDescription = null
-                )
-
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = stringResource(R.string.event_creation_all_day)
-                )
-
-                Switch(
-                    checked = allDayChecked,
-                    onCheckedChange = {
-                        onEvent(EventCreationUiEvent.AllDayCheckedChange(it))
-                    }
-                )
+            val selectedItem = if (allDayChecked) {
+                EventDuration.AllDay
+            } else {
+                EventDuration.Specific
             }
 
-            Crossfade(targetState = allDayChecked) { innerChecked ->
+            SliderButton(
+                modifier = Modifier.fillMaxWidth(),
+                items = EventDuration.entries,
+                selectedItem = selectedItem
+            ) { duration ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable {
+                            onEvent(EventCreationUiEvent.AllDayCheckedChange(duration == EventDuration.AllDay))
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    val textColor by animateColorAsState(
+                        targetValue = if (selectedItem == duration) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                        label = "SliderButtonTextColor"
+                    )
+
+                    Text(
+                        text = duration.toString(),
+                        color = textColor
+                    )
+                }
+            }
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.spacedBy(16.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Icon(
+//                    painter = painterResource(R.drawable.ic_schedule_24px),
+//                    contentDescription = null
+//                )
+//
+//                Text(
+//                    modifier = Modifier.weight(1f),
+//                    text = stringResource(R.string.event_creation_all_day)
+//                )
+//
+//                Switch(
+//                    checked = allDayChecked,
+//                    onCheckedChange = {
+//                        onEvent(EventCreationUiEvent.AllDayCheckedChange(it))
+//                    }
+//                )
+//            }
+
+            Crossfade(
+                modifier = Modifier.padding(16.dp),
+                targetState = allDayChecked
+            ) { innerChecked ->
                 val baseModifier = Modifier
                     .fillMaxWidth()
 

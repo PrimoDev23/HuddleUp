@@ -58,8 +58,8 @@ private fun getEventDurationForSpecificDuration(
     return if (startDateTime.date < currentDate && endDateTime.date > currentDate) {
         NewEventDuration(
             duration = EventDuration.AllDay,
-            start = start,
-            end = end
+            start = date,
+            end = date
         )
     } else {
         val startTime = if (startDateTime.date == currentDate) {
@@ -83,8 +83,8 @@ private fun getEventDurationForSpecificDuration(
 
         NewEventDuration(
             duration = EventDuration.Specific,
-            start = start.atTime(startTime),
-            end = end.atTime(endTime)
+            start = date.atTime(startTime),
+            end = date.atTime(endTime)
         )
     }
 }

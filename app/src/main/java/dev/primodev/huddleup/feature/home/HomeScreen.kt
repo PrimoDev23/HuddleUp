@@ -373,8 +373,16 @@ private fun HomeScreenCalendar(
                             maxLines = 1
                         ) {
                             eventsForCurrentDay.forEach { _ ->
+                                val dotColor by animateColorAsState(
+                                    targetValue = if (day.date == selectedDate) {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
+                                    label = "DotColor"
+                                )
                                 Canvas(modifier = Modifier.size(4.dp)) {
-                                    drawCircle(color = Color.Black)
+                                    drawCircle(color = dotColor)
                                 }
                             }
                         }

@@ -250,7 +250,8 @@ private fun HomeScreenData(
 
             HomeScreenEventList(
                 modifier = Modifier.fillMaxSize(),
-                events = eventsForSelectedDate
+                events = eventsForSelectedDate,
+                onEvent = onEvent
             )
         }
     }
@@ -377,19 +378,6 @@ private fun HomeScreenCalendar(
                                 }
                             }
                         }
-                        /*CalendarEventBubbleRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(
-                                alignment = Alignment.CenterHorizontally,
-                                space = 4.dp
-                            )
-                        ) {
-                            eventsForCurrentDay.forEach { _ ->
-                                Canvas(modifier = Modifier.size(4.dp)) {
-                                    drawCircle(color = Color.Black)
-                                }
-                            }
-                        }*/
                     }
                 }
             }
@@ -417,6 +405,7 @@ private fun HomeScreenCalendarHeader(modifier: Modifier = Modifier) {
 @Composable
 private fun HomeScreenEventList(
     events: List<Event>,
+    onEvent: (HomeUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -434,8 +423,13 @@ private fun HomeScreenEventList(
             }
         ) { event ->
             EventCard(
-                modifier = Modifier.fillMaxWidth(),
-                event = event
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateItem(),
+                event = event,
+                onEndToStartSwiped = {
+                    onEvent(HomeUiEvent.DeleteSwiped(event))
+                }
             )
         }
     }

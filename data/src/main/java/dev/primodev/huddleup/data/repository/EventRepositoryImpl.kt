@@ -5,6 +5,7 @@ import dev.primodev.huddleup.data.datasource.abstractions.EventDatasource
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.repository.EventRepository
 import kotlinx.coroutines.flow.Flow
+import kotlin.uuid.Uuid
 
 class EventRepositoryImpl(
     private val datasource: EventDatasource,
@@ -15,5 +16,9 @@ class EventRepositoryImpl(
 
     override fun insertEvent(event: Event): Flow<AppResult<Unit>> {
         return datasource.insertEvent(event)
+    }
+
+    override fun deleteEventById(id: Uuid): Flow<AppResult<Unit>> {
+        return datasource.deleteEventById(id)
     }
 }

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import dev.primodev.huddleup.data.entity.EventEntity
 import kotlinx.coroutines.flow.Flow
+import kotlin.uuid.Uuid
 
 @Dao
 interface EventDao {
@@ -14,4 +15,7 @@ interface EventDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEvent(event: EventEntity)
+
+    @Query("DELETE FROM events WHERE id = :id")
+    suspend fun deleteEventById(id: Uuid)
 }

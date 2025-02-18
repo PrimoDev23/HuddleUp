@@ -9,6 +9,7 @@ import dev.primodev.huddleup.data.entity.toDomain
 import dev.primodev.huddleup.data.entity.toEntity
 import dev.primodev.huddleup.domain.entity.event.Event
 import kotlinx.coroutines.flow.Flow
+import kotlin.uuid.Uuid
 
 class EventDatasourceImpl(
     private val eventDao: EventDao,
@@ -28,6 +29,17 @@ class EventDatasourceImpl(
         return executeSuspendingDatabaseRequest(
             request = {
                 eventDao.insertEvent(event.toEntity())
+            },
+            transform = {
+                return@executeSuspendingDatabaseRequest it
+            }
+        )
+    }
+
+    override fun deleteEventById(id: Uuid): Flow<AppResult<Unit>> {
+        return executeSuspendingDatabaseRequest(
+            request = {
+                eventDao.deleteEventById(id)
             },
             transform = {
                 return@executeSuspendingDatabaseRequest it

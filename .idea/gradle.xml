@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/domain" />
             <option value="$PROJECT_DIR$/shared" />
             <option value="$PROJECT_DIR$/shared/appresult" />
+            <option value="$PROJECT_DIR$/shared/testing" />
             <option value="$PROJECT_DIR$/shared/triggerables" />
           </set>
         </option>

@@ -54,6 +54,7 @@ import dev.primodev.huddleup.feature.eventcreation.components.EventCreationSavin
 import dev.primodev.huddleup.feature.eventcreation.components.EventCreationUnsavedChangesDialog
 import dev.primodev.huddleup.feature.eventcreation.components.SliderButton
 import dev.primodev.huddleup.feature.eventcreation.components.TimePickerDialog
+import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationContentState
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
 import dev.primodev.huddleup.theme.HuddleUpTheme
@@ -126,6 +127,8 @@ private fun EventCreationContent(
             }
         }
     ) { innerPadding ->
+        val contentState = uiState.contentState
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -135,38 +138,40 @@ private fun EventCreationContent(
         ) {
             EventCreationTitleTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = uiState.title,
+                value = contentState.title,
                 onValueChange = {
                     onEvent(EventCreationUiEvent.TitleChange(it))
                 },
-                isError = uiState.uiError == EventCreationUiError.TitleBlank
+                isError = contentState.uiError == EventCreationUiError.TitleBlank
             )
 
             EventCreationDateSelection(
                 modifier = Modifier.fillMaxWidth(),
-                duration = uiState.duration,
-                start = uiState.start,
-                end = uiState.end,
+                duration = contentState.duration,
+                start = contentState.start,
+                end = contentState.end,
                 onEvent = onEvent
             )
         }
     }
 
     EventCreationDialogs(
-        uiState = uiState,
+        currentDialog = uiState.currentDialog,
+        contentState = uiState.contentState,
         onEvent = onEvent
     )
 }
 
 @Composable
 private fun EventCreationDialogs(
-    uiState: EventCreationUiState,
+    currentDialog: EventCreationDialog,
+    contentState: EventCreationContentState,
     onEvent: (EventCreationUiEvent) -> Unit,
 ) {
-    when (uiState.currentDialog) {
+    when (currentDialog) {
         EventCreationDialog.None -> Unit
         EventCreationDialog.StartDate -> DatePickerDialog(
-            selectedDate = uiState.start,
+            selectedDate = contentState.start,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
@@ -176,7 +181,7 @@ private fun EventCreationDialogs(
         )
 
         EventCreationDialog.StartTime -> TimePickerDialog(
-            selectedTime = uiState.start,
+            selectedTime = contentState.start,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
@@ -186,7 +191,7 @@ private fun EventCreationDialogs(
         )
 
         EventCreationDialog.EndDate -> DatePickerDialog(
-            selectedDate = uiState.end,
+            selectedDate = contentState.end,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
@@ -196,7 +201,7 @@ private fun EventCreationDialogs(
         )
 
         EventCreationDialog.EndTime -> TimePickerDialog(
-            selectedTime = uiState.end,
+            selectedTime = contentState.end,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
@@ -549,108 +554,130 @@ private fun EventCreationContentPreview(
 private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreationUiState> {
     override val values: Sequence<EventCreationUiState> = sequenceOf(
         EventCreationUiState(
-            title = "",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now(),
             currentDialog = EventCreationDialog.None,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now(),
+                uiError = null
+            )
         ),
         EventCreationUiState(
-            title = "",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now(),
             currentDialog = EventCreationDialog.None,
-            uiError = EventCreationUiError.TitleBlank
+            contentState = EventCreationContentState(
+                title = "",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now(),
+                uiError = EventCreationUiError.TitleBlank
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.AllDay,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(1.days).atTime(13, 13),
             currentDialog = EventCreationDialog.None,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.AllDay,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(1.days).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.None,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.StartDate,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.StartTime,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.EndDate,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.EndTime,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.IsSaving,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.SavingError,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
         EventCreationUiState(
-            title = "Title",
-            duration = EventDuration.Specific,
-            start = Clock.System.now(),
-            end = Clock.System.now().plus(
-                1.days
-            ).atTime(13, 13),
             currentDialog = EventCreationDialog.UnsavedChanges,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "Title",
+                duration = EventDuration.Specific,
+                start = Clock.System.now(),
+                end = Clock.System.now().plus(
+                    1.days
+                ).atTime(13, 13),
+                uiError = null
+            ),
         ),
     )
 

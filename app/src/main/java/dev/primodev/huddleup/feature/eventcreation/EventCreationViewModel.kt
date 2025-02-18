@@ -7,6 +7,7 @@ import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.domain.usecase.event.InsertEventUseCase
 import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationContentState
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationInputState
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
@@ -133,23 +134,27 @@ class EventCreationViewModel(
         }
 
         EventCreationUiState(
-            title = inputState.title,
-            duration = inputState.duration,
-            start = inputState.start,
-            end = inputState.end,
             currentDialog = currentDialog,
-            uiError = error
+            contentState = EventCreationContentState(
+                title = inputState.title,
+                duration = inputState.duration,
+                start = inputState.start,
+                end = inputState.end,
+                uiError = error
+            )
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = EventCreationUiState(
-            title = "",
-            duration = EventDuration.Specific,
-            start = initialStart,
-            end = initialEnd,
             currentDialog = EventCreationDialog.None,
-            uiError = null
+            contentState = EventCreationContentState(
+                title = "",
+                duration = EventDuration.Specific,
+                start = initialStart,
+                end = initialEnd,
+                uiError = null
+            )
         )
     )
 

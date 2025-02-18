@@ -104,7 +104,12 @@ class EventCreationViewModel(
                 is SubmitResult.Success -> navigator.navigateUp()
 
                 SubmitResult.Loading -> showDialog(EventCreationDialog.IsSaving)
-                is SubmitResult.Error -> showDialog(EventCreationDialog.SavingError)
+                is SubmitResult.Error -> {
+                    when (result.reason) {
+                        EventCreationErrorReason.TitleBlank -> Unit
+                        else -> showDialog(EventCreationDialog.SavingError)
+                    }
+                }
             }
         }
 

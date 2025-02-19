@@ -40,6 +40,7 @@ import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.extensions.nowAsDateTime
 import dev.primodev.huddleup.extensions.toLocalizedString
 import dev.primodev.huddleup.theme.HuddleUpTheme
 import kotlinx.datetime.Clock
@@ -171,8 +172,8 @@ private fun EventCardContent(
                     }
 
                     EventDuration.Specific -> {
-                        val start = event.start.toLocalizedString()
-                        val end = event.end.toLocalizedString()
+                        val start = event.start.time.toLocalizedString()
+                        val end = event.end.time.toLocalizedString()
 
                         "$start - $end"
                     }
@@ -208,7 +209,7 @@ private fun EventCardPreview(
 }
 
 private class EventProvider : PreviewParameterProvider<Event> {
-    private val now = Clock.System.now()
+    private val now = Clock.System.nowAsDateTime()
 
     override val values: Sequence<Event> = sequenceOf(
         Event(
@@ -224,9 +225,4 @@ private class EventProvider : PreviewParameterProvider<Event> {
             title = "All day event"
         ),
     )
-}
-
-private enum class SwipeState {
-    None,
-    EndToStart
 }

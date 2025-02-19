@@ -60,7 +60,9 @@ import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.extensions.minus
 import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.extensions.plus
 import dev.primodev.huddleup.feature.home.components.EventCard
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
 import dev.primodev.huddleup.theme.HuddleUpTheme
@@ -458,19 +460,18 @@ private fun HomeScreenContentPreview(
 }
 
 private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
-    private val now = Clock.System.now()
-    private val nowDateTime = Clock.System.nowAsDateTime()
+    private val now = Clock.System.nowAsDateTime()
 
     override val values: Sequence<HomeUiState> = sequenceOf(
         HomeUiState.InitLoading,
         HomeUiState.Error,
         HomeUiState.Data(
             events = emptyMap(),
-            selectedDate = nowDateTime.date
+            selectedDate = now.date
         ),
         HomeUiState.Data(
             events = mapOf(
-                nowDateTime.date to listOf(
+                now.date to listOf(
                     Event(
                         duration = EventDuration.AllDay,
                         start = now,
@@ -479,11 +480,11 @@ private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
                     )
                 ),
             ),
-            selectedDate = nowDateTime.date
+            selectedDate = now.date
         ),
         HomeUiState.Data(
             events = mapOf(
-                nowDateTime.date to listOf(
+                now.date to listOf(
                     Event(
                         duration = EventDuration.AllDay,
                         start = now,
@@ -503,7 +504,7 @@ private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
                         title = "Event 3"
                     ),
                 ),
-                nowDateTime.date.minus(1, DateTimeUnit.DAY) to listOf(
+                now.date.minus(1, DateTimeUnit.DAY) to listOf(
                     Event(
                         duration = EventDuration.Specific,
                         start = now.atTime(13, 13).minus(1.days),
@@ -511,7 +512,7 @@ private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
                         title = "Event 2"
                     ),
                 ),
-                nowDateTime.date.plus(1, DateTimeUnit.DAY) to listOf(
+                now.date.plus(1, DateTimeUnit.DAY) to listOf(
                     Event(
                         duration = EventDuration.Specific,
                         start = now.atTime(0, 0).plus(1.days),
@@ -520,7 +521,7 @@ private class HomeUiStateProvider : PreviewParameterProvider<HomeUiState> {
                     ),
                 ),
             ),
-            selectedDate = nowDateTime.date
+            selectedDate = now.date
         ),
     )
 }

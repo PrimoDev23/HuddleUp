@@ -6,7 +6,8 @@ import dev.primodev.huddleup.appresult.AppResult
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.domain.usecase.event.InsertEventUseCase
-import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.extensions.plus
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationContentState
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationInputState
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
@@ -25,9 +26,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.atDate
+import kotlinx.datetime.atTime
 import kotlin.time.Duration.Companion.hours
 import kotlin.uuid.Uuid
 
@@ -38,7 +40,7 @@ class EventCreationViewModel(
 
     private val uuid = Uuid.random()
 
-    private val now = Clock.System.now()
+    private val now = Clock.System.nowAsDateTime()
     private val initialStart = now
     private val initialEnd = now.plus(1.hours)
 
@@ -174,8 +176,11 @@ class EventCreationViewModel(
             EventCreationUiEvent.EndTimeClick -> onEndTimeClick()
             EventCreationUiEvent.DialogDismissed -> onDialogDismissed()
 
-            is EventCreationUiEvent.StartChanged -> onStartChanged(event.instant)
-            is EventCreationUiEvent.EndChanged -> onEndChanged(event.instant)
+            is EventCreationUiEvent.StartDateChanged -> onStartDateChanged(event.date)
+            is EventCreationUiEvent.StartTimeChanged -> onStartTimeChanged(event.time)
+            is EventCreationUiEvent.EndDateChanged -> onEndDateChanged(event.date)
+            is EventCreationUiEvent.EndTimeChanged -> onEndTimeChanged(event.time)
+
             is EventCreationUiEvent.SaveClick -> onSaveClick()
             EventCreationUiEvent.DiscardClick -> onDiscardClick()
         }
@@ -229,46 +234,70 @@ class EventCreationViewModel(
         }
     }
 
-    private fun onStartChanged(instant: Instant) {
+    private fun onStartDateChanged(date: LocalDate) {
         inputState.update { state ->
-            val startDateTime = state.start.toLocalDateTime(TimeZone.UTC)
-            val start = instant.atTime(
-                hour = startDateTime.hour,
-                minute = startDateTime.minute
-            )
+            val newStart = state.start.time.atDate(date)
 
-            // Handle Start > End
-            val end = if (start >= state.end) {
-                start
+            val newEnd = if (newStart > state.end) {
+                newStart
             } else {
                 state.end
             }
 
             state.copy(
-                start = start,
-                end = end
+                start = newStart,
+                end = newEnd
             )
         }
     }
 
-    private fun onEndChanged(instant: Instant) {
+    private fun onStartTimeChanged(time: LocalTime) {
         inputState.update { state ->
-            val endDateTime = state.end.toLocalDateTime(TimeZone.UTC)
-            val end = instant.atTime(
-                hour = endDateTime.hour,
-                minute = endDateTime.minute
-            )
+            val newStart = state.start.date.atTime(time)
 
-            // Handle Start > End
-            val start = if (end <= state.start) {
-                end
+            val newEnd = if (newStart > state.end) {
+                newStart
+            } else {
+                state.end
+            }
+
+            state.copy(
+                start = newStart,
+                end = newEnd
+            )
+        }
+    }
+
+    private fun onEndDateChanged(date: LocalDate) {
+        inputState.update { state ->
+            val newEnd = state.end.time.atDate(date)
+
+            val newStart = if (newEnd < state.start) {
+                newEnd
             } else {
                 state.start
             }
 
             state.copy(
-                start = start,
-                end = end
+                start = newStart,
+                end = newEnd
+            )
+        }
+    }
+
+    private fun onEndTimeChanged(time: LocalTime) {
+        inputState.update { state ->
+            val newEnd = state.end.date.atTime(time)
+
+            val newStart = if (newEnd < state.start) {
+                newEnd
+            } else {
+                state.start
+            }
+
+            state.copy(
+                start = newStart,
+                end = newEnd
             )
         }
     }

@@ -1,7 +1,8 @@
 package dev.primodev.huddleup.feature.eventcreation
 
 import dev.primodev.huddleup.domain.entity.event.EventDuration
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 sealed interface EventCreationUiEvent {
     data object Back : EventCreationUiEvent
@@ -15,8 +16,11 @@ sealed interface EventCreationUiEvent {
     data object EndTimeClick : EventCreationUiEvent
     data object DialogDismissed : EventCreationUiEvent
 
-    data class StartChanged(val instant: Instant) : EventCreationUiEvent
-    data class EndChanged(val instant: Instant) : EventCreationUiEvent
+    data class StartDateChanged(val date: LocalDate) : EventCreationUiEvent
+    data class StartTimeChanged(val time: LocalTime) : EventCreationUiEvent
+    data class EndDateChanged(val date: LocalDate) : EventCreationUiEvent
+    data class EndTimeChanged(val time: LocalTime) : EventCreationUiEvent
+
     data object SaveClick : EventCreationUiEvent
     data object DiscardClick : EventCreationUiEvent
 }

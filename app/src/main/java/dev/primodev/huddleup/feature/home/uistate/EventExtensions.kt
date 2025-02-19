@@ -2,25 +2,32 @@ package dev.primodev.huddleup.feature.home.uistate
 
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
-import dev.primodev.huddleup.extensions.atTime
-import kotlinx.datetime.Instant
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration.Companion.days
+import kotlinx.datetime.atTime
+import kotlinx.datetime.plus
 
 internal fun Event.toEventsPerDay(): List<Event> {
     return buildList {
-        var currentDate = start
-        val endDate = end
+        var currentDate = start.date
+        val endDate = end.date
 
         do {
             val newEvent = when (duration) {
                 EventDuration.AllDay -> {
                     this@toEventsPerDay.copy(
                         duration = EventDuration.AllDay,
-                        start = currentDate,
-                        end = currentDate
+                        start = currentDate.atTime(
+                            hour = 0,
+                            minute = 0
+                        ),
+                        end = currentDate.atTime(
+                            hour = 23,
+                            minute = 59,
+                            second = 59
+                        )
                     )
                 }
 
@@ -41,29 +48,35 @@ internal fun Event.toEventsPerDay(): List<Event> {
 
             add(newEvent)
 
-            currentDate = currentDate.plus(1.days)
+            currentDate = currentDate.plus(
+                value = 1,
+                unit = DateTimeUnit.DAY
+            )
         } while (currentDate <= endDate)
     }
 }
 
 private fun getEventDurationForSpecificDuration(
-    start: Instant,
-    end: Instant,
-    date: Instant,
+    start: LocalDateTime,
+    end: LocalDateTime,
+    date: LocalDate,
 ): NewEventDuration {
-    val startDateTime = start.toLocalDateTime(TimeZone.UTC)
-    val endDateTime = end.toLocalDateTime(TimeZone.UTC)
-    val currentDate = date.toLocalDateTime(TimeZone.UTC).date
-
-    return if (startDateTime.date < currentDate && endDateTime.date > currentDate) {
+    return if (start.date < date && end.date > date) {
         NewEventDuration(
             duration = EventDuration.AllDay,
-            start = date,
-            end = date
+            start = date.atTime(
+                hour = 0,
+                minute = 0
+            ),
+            end = date.atTime(
+                hour = 23,
+                minute = 59,
+                second = 59
+            )
         )
     } else {
-        val startTime = if (startDateTime.date == currentDate) {
-            startDateTime.time
+        val startTime = if (start.date == date) {
+            start.time
         } else {
             LocalTime(
                 hour = 0,
@@ -71,8 +84,8 @@ private fun getEventDurationForSpecificDuration(
                 second = 0
             )
         }
-        val endTime = if (endDateTime.date == currentDate) {
-            endDateTime.time
+        val endTime = if (end.date == date) {
+            end.time
         } else {
             LocalTime(
                 hour = 23,
@@ -91,6 +104,6 @@ private fun getEventDurationForSpecificDuration(
 
 private data class NewEventDuration(
     val duration: EventDuration,
-    val start: Instant,
-    val end: Instant,
+    val start: LocalDateTime,
+    val end: LocalDateTime,
 )

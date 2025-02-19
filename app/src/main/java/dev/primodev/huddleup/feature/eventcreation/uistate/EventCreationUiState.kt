@@ -2,7 +2,7 @@ package dev.primodev.huddleup.feature.eventcreation.uistate
 
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.feature.eventcreation.EventCreationDialog
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 
 data class EventCreationUiState(
     val currentDialog: EventCreationDialog,
@@ -12,7 +12,7 @@ data class EventCreationUiState(
 data class EventCreationContentState(
     val title: String,
     val duration: EventDuration,
-    val start: Instant,
-    val end: Instant,
+    val start: LocalDateTime,
+    val end: LocalDateTime,
     val uiError: EventCreationUiError?,
 )

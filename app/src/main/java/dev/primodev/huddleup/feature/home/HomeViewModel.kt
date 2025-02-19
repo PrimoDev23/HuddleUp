@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 class HomeViewModel(
     getAllEventsUseCase: GetAllEventsUseCase,
@@ -98,6 +96,6 @@ class HomeViewModel(
                 event.toEventsPerDay()
             }
             .groupBy { event ->
-                event.start.toLocalDateTime(TimeZone.UTC).date
+                event.start.date
             }
 }

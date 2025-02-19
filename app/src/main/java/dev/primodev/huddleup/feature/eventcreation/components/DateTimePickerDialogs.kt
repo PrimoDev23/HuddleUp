@@ -17,7 +17,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,25 +25,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.primodev.huddleup.R
-import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.extensions.nowAsDateTime
 import dev.primodev.huddleup.theme.HuddleUpTheme
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerDialog(
-    selectedDate: Instant,
+    selectedDate: LocalDate,
     onDismissRequest: () -> Unit,
-    onConfirmClick: (Instant) -> Unit,
+    onConfirmClick: (LocalDate) -> Unit,
 ) {
     val datePickerState = rememberDatePickerState()
 
     LaunchedEffect(true) {
-        datePickerState.selectedDateMillis =
-            selectedDate.toEpochMilliseconds()
+        datePickerState.selectedDateMillis = selectedDate
+            .atTime(
+                hour = 0,
+                minute = 0
+            )
+            .toInstant(TimeZone.UTC)
+            .toEpochMilliseconds()
     }
 
     androidx.compose.material3.DatePickerDialog(
@@ -53,7 +62,8 @@ fun DatePickerDialog(
             TextButton(
                 onClick = {
                     val selectedDateMillis = datePickerState.selectedDateMillis ?: 0
-                    val date = Instant.fromEpochMilliseconds(selectedDateMillis)
+                    val instant = Instant.fromEpochMilliseconds(selectedDateMillis)
+                    val date = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
 
                     onConfirmClick(date)
                     onDismissRequest()
@@ -79,16 +89,13 @@ fun DatePickerDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(
-    selectedTime: Instant,
+    selectedTime: LocalTime,
     onDismissRequest: () -> Unit,
-    onConfirmClick: (Instant) -> Unit,
+    onConfirmClick: (LocalTime) -> Unit,
 ) {
-    val localTime = remember {
-        selectedTime.toLocalDateTime(TimeZone.UTC).time
-    }
     val timePickerState = rememberTimePickerState(
-        initialHour = localTime.hour,
-        initialMinute = localTime.minute
+        initialHour = selectedTime.hour,
+        initialMinute = selectedTime.minute
     )
 
     Dialog(
@@ -128,9 +135,9 @@ fun TimePickerDialog(
                     TextButton(
                         onClick = {
                             onConfirmClick(
-                                selectedTime.atTime(
-                                    timePickerState.hour,
-                                    timePickerState.minute
+                                LocalTime(
+                                    hour = timePickerState.hour,
+                                    minute = timePickerState.minute
                                 )
                             )
                             onDismissRequest()
@@ -149,7 +156,7 @@ fun TimePickerDialog(
 private fun DatePickerDialogPreview() {
     HuddleUpTheme {
         DatePickerDialog(
-            selectedDate = Clock.System.now(),
+            selectedDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),
             onDismissRequest = {},
             onConfirmClick = {}
         )
@@ -161,7 +168,7 @@ private fun DatePickerDialogPreview() {
 private fun TimePickerDialogPreview() {
     HuddleUpTheme {
         TimePickerDialog(
-            selectedTime = Clock.System.now(),
+            selectedTime = Clock.System.nowAsDateTime().time,
             onDismissRequest = {},
             onConfirmClick = {}
         )

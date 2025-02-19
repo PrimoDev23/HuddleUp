@@ -48,6 +48,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.primodev.huddleup.R
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.extensions.plus
 import dev.primodev.huddleup.feature.eventcreation.components.DatePickerDialog
 import dev.primodev.huddleup.feature.eventcreation.components.EventCreationSavingDialog
 import dev.primodev.huddleup.feature.eventcreation.components.EventCreationSavingErrorDialog
@@ -59,13 +61,11 @@ import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiError
 import dev.primodev.huddleup.feature.eventcreation.uistate.EventCreationUiState
 import dev.primodev.huddleup.theme.HuddleUpTheme
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.char
-import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration.Companion.days
 
@@ -171,42 +171,42 @@ private fun EventCreationDialogs(
     when (currentDialog) {
         EventCreationDialog.None -> Unit
         EventCreationDialog.StartDate -> DatePickerDialog(
-            selectedDate = contentState.start,
+            selectedDate = contentState.start.date,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
-                onEvent(EventCreationUiEvent.StartChanged(it))
+                onEvent(EventCreationUiEvent.StartDateChanged(it))
             }
         )
 
         EventCreationDialog.StartTime -> TimePickerDialog(
-            selectedTime = contentState.start,
+            selectedTime = contentState.start.time,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
-                onEvent(EventCreationUiEvent.StartChanged(it))
+                onEvent(EventCreationUiEvent.StartTimeChanged(it))
             }
         )
 
         EventCreationDialog.EndDate -> DatePickerDialog(
-            selectedDate = contentState.end,
+            selectedDate = contentState.end.date,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
-                onEvent(EventCreationUiEvent.EndChanged(it))
+                onEvent(EventCreationUiEvent.EndDateChanged(it))
             }
         )
 
         EventCreationDialog.EndTime -> TimePickerDialog(
-            selectedTime = contentState.end,
+            selectedTime = contentState.end.time,
             onDismissRequest = {
                 onEvent(EventCreationUiEvent.DialogDismissed)
             },
             onConfirmClick = {
-                onEvent(EventCreationUiEvent.EndChanged(it))
+                onEvent(EventCreationUiEvent.EndTimeChanged(it))
             }
         )
 
@@ -268,8 +268,8 @@ private fun EventCreationTitleTextField(
 @Composable
 private fun EventCreationDateSelection(
     duration: EventDuration,
-    start: Instant,
-    end: Instant,
+    start: LocalDateTime,
+    end: LocalDateTime,
     onEvent: (EventCreationUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -370,9 +370,9 @@ private fun EventCreationDateSelection(
 
 @Composable
 private fun EventCreationAllDaySettings(
-    start: Instant,
+    start: LocalDateTime,
     onStartClick: () -> Unit,
-    end: Instant,
+    end: LocalDateTime,
     onEndClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -390,21 +390,15 @@ private fun EventCreationAllDaySettings(
             }
         }
 
-        val startDateTime = remember(start) {
-            start.toLocalDateTime(TimeZone.currentSystemDefault())
-        }
         val startString = rememberClickableDateTimeString(
-            dateTime = startDateTime.date,
+            dateTime = start.date,
             formatter = formatter,
             tag = "StartDate",
             onClick = onStartClick
         )
 
-        val endDateTime = remember(end) {
-            end.toLocalDateTime(TimeZone.currentSystemDefault())
-        }
         val endString = rememberClickableDateTimeString(
-            dateTime = endDateTime.date,
+            dateTime = end.date,
             formatter = formatter,
             tag = "EndDate",
             onClick = onEndClick
@@ -440,10 +434,10 @@ private fun <T> rememberClickableDateTimeString(
 
 @Composable
 private fun EventCreationSpecificSettings(
-    start: Instant,
+    start: LocalDateTime,
     onStartDateClick: () -> Unit,
     onStartTimeClick: () -> Unit,
-    end: Instant,
+    end: LocalDateTime,
     onEndDateClick: () -> Unit,
     onEndTimeClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -484,11 +478,8 @@ private fun EventCreationSpecificSettings(
         }
 
         Row(modifier = Modifier.fillMaxWidth()) {
-            val startDateTime = remember(start) {
-                start.toLocalDateTime(TimeZone.currentSystemDefault())
-            }
             val startDateString = rememberClickableDateTimeString(
-                dateTime = startDateTime.date,
+                dateTime = start.date,
                 formatter = dateFormatter,
                 tag = "StartDate",
                 onClick = onStartDateClick
@@ -500,7 +491,7 @@ private fun EventCreationSpecificSettings(
             )
 
             val startTimeString = rememberClickableDateTimeString(
-                dateTime = startDateTime.time,
+                dateTime = start.time,
                 formatter = timeFormatter,
                 tag = "StartTime",
                 onClick = onStartTimeClick
@@ -510,11 +501,8 @@ private fun EventCreationSpecificSettings(
         }
 
         Row(modifier = Modifier.fillMaxWidth()) {
-            val endDateTime = remember(end) {
-                end.toLocalDateTime(TimeZone.currentSystemDefault())
-            }
             val endDateString = rememberClickableDateTimeString(
-                dateTime = endDateTime.date,
+                dateTime = end.date,
                 formatter = dateFormatter,
                 tag = "EndDate",
                 onClick = onEndDateClick
@@ -526,7 +514,7 @@ private fun EventCreationSpecificSettings(
             )
 
             val endTimeString = rememberClickableDateTimeString(
-                dateTime = endDateTime.time,
+                dateTime = end.time,
                 formatter = timeFormatter,
                 tag = "EndTime",
                 onClick = onEndTimeClick
@@ -552,14 +540,16 @@ private fun EventCreationContentPreview(
 }
 
 private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreationUiState> {
+    private val now = Clock.System.nowAsDateTime()
+
     override val values: Sequence<EventCreationUiState> = sequenceOf(
         EventCreationUiState(
             currentDialog = EventCreationDialog.None,
             contentState = EventCreationContentState(
                 title = "",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now(),
+                start = now,
+                end = now,
                 uiError = null
             )
         ),
@@ -568,8 +558,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now(),
+                start = now,
+                end = now,
                 uiError = EventCreationUiError.TitleBlank
             ),
         ),
@@ -578,8 +568,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.AllDay,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(1.days).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -588,10 +578,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -600,10 +588,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -612,10 +598,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -624,10 +608,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -636,10 +618,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -648,10 +628,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -660,10 +638,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),
@@ -672,10 +648,8 @@ private class EventCreationUiStateProvider : PreviewParameterProvider<EventCreat
             contentState = EventCreationContentState(
                 title = "Title",
                 duration = EventDuration.Specific,
-                start = Clock.System.now(),
-                end = Clock.System.now().plus(
-                    1.days
-                ).atTime(13, 13),
+                start = now,
+                end = now.plus(1.days).atTime(13, 13),
                 uiError = null
             ),
         ),

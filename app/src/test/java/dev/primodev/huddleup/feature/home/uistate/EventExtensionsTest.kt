@@ -3,6 +3,8 @@ package dev.primodev.huddleup.feature.home.uistate
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.extensions.atTime
+import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.extensions.plus
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalTime
 import org.junit.Test
@@ -19,7 +21,7 @@ class EventExtensionsTest {
     fun `when splitting a single day AllDay event, then return list with a single day AllDay event`() {
         // GIVEN
         val id = Uuid.random()
-        val now = Clock.System.now()
+        val now = Clock.System.nowAsDateTime()
 
         val event = Event(
             id = id,
@@ -32,8 +34,15 @@ class EventExtensionsTest {
             Event(
                 id = id,
                 duration = EventDuration.AllDay,
-                start = now,
-                end = now,
+                start = now.atTime(
+                    hour = 0,
+                    minute = 0
+                ),
+                end = now.atTime(
+                    hour = 23,
+                    minute = 59,
+                    second = 59
+                ),
                 title = "Test"
             )
         )
@@ -49,7 +58,7 @@ class EventExtensionsTest {
     fun `when splitting a multi day AllDay event, then return list with multiple AllDay events`() {
         // GIVEN
         val id = Uuid.random()
-        val now = Clock.System.now()
+        val now = Clock.System.nowAsDateTime()
 
         val event = Event(
             id = id,
@@ -62,22 +71,51 @@ class EventExtensionsTest {
             Event(
                 id = id,
                 duration = EventDuration.AllDay,
-                start = now,
-                end = now,
+                start = now.atTime(
+                    hour = 0,
+                    minute = 0
+                ),
+                end = now.atTime(
+                    hour = 23,
+                    minute = 59,
+                    second = 59
+                ),
                 title = "Test"
             ),
             Event(
                 id = id,
                 duration = EventDuration.AllDay,
-                start = now.plus(1.days),
-                end = now.plus(1.days),
+                start = now
+                    .plus(1.days)
+                    .atTime(
+                        hour = 0,
+                        minute = 0
+                    ),
+                end = now
+                    .plus(1.days)
+                    .atTime(
+                        hour = 23,
+                        minute = 59,
+                        second = 59
+                    ),
                 title = "Test"
             ),
             Event(
                 id = id,
                 duration = EventDuration.AllDay,
-                start = now.plus(2.days),
-                end = now.plus(2.days),
+                start = now
+                    .plus(2.days)
+                    .atTime(
+                        hour = 0,
+                        minute = 0
+                    ),
+                end = now
+                    .plus(2.days)
+                    .atTime(
+                        hour = 23,
+                        minute = 59,
+                        second = 59
+                    ),
                 title = "Test"
             )
         )
@@ -97,7 +135,7 @@ class EventExtensionsTest {
     fun `when splitting a single day Specific event, then return list with a single day Specific event`() {
         // GIVEN
         val id = Uuid.random()
-        val now = Clock.System.now().atTime(10, 0)
+        val now = Clock.System.nowAsDateTime().atTime(10, 0)
         val end = now.plus(2.hours)
 
         val event = Event(
@@ -128,7 +166,7 @@ class EventExtensionsTest {
     fun `when splitting a multi day Specific event, then return list with multiple events`() {
         // GIVEN
         val id = Uuid.random()
-        val now = Clock.System.now().atTime(10, 0)
+        val now = Clock.System.nowAsDateTime().atTime(10, 0)
         val end = now.plus(2.days)
 
         val event = Event(
@@ -155,8 +193,19 @@ class EventExtensionsTest {
             Event(
                 id = id,
                 duration = EventDuration.AllDay,
-                start = now.plus(1.days),
-                end = now.plus(1.days),
+                start = now
+                    .plus(1.days)
+                    .atTime(
+                        hour = 0,
+                        minute = 0
+                    ),
+                end = now
+                    .plus(1.days)
+                    .atTime(
+                        hour = 23,
+                        minute = 59,
+                        second = 59
+                    ),
                 title = "Test"
             ),
             Event(

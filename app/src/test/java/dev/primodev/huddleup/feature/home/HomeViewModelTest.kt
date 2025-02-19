@@ -4,8 +4,10 @@ import app.cash.turbine.test
 import dev.primodev.huddleup.appresult.AppResult
 import dev.primodev.huddleup.domain.entity.event.Event
 import dev.primodev.huddleup.domain.entity.event.EventDuration
+import dev.primodev.huddleup.domain.usecase.event.DeleteEventByIdUseCase
 import dev.primodev.huddleup.domain.usecase.event.GetAllEventsUseCase
 import dev.primodev.huddleup.extensions.nowAsDateTime
+import dev.primodev.huddleup.extensions.plus
 import dev.primodev.huddleup.feature.eventcreation.EventCreationDestination
 import dev.primodev.huddleup.feature.home.uistate.HomeUiState
 import dev.primodev.huddleup.feature.home.uistate.toEventsPerDay
@@ -19,7 +21,7 @@ import io.mockk.mockk
 import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.junit.After
@@ -31,6 +33,7 @@ import kotlin.time.Duration.Companion.days
 class HomeViewModelTest : KotlinTestBase() {
 
     private val getAllEventsUseCase = mockk<GetAllEventsUseCase>()
+    private val deleteEventByIdUseCase = mockk<DeleteEventByIdUseCase>()
     private val appNavigator = mockk<AppNavigator>()
 
     @After
@@ -43,14 +46,14 @@ class HomeViewModelTest : KotlinTestBase() {
     @Test
     fun `when initializing events succeeds, then show correct ui states`() {
         // GIVEN
-        val now = Clock.System.now()
+        val now = Clock.System.nowAsDateTime()
         val events = createDummyEvents(now)
         val expectedEvents = events
             .flatMap { event ->
                 event.toEventsPerDay()
             }
             .groupBy { event ->
-                event.start.toLocalDateTime(TimeZone.UTC).date
+                event.start.date
             }
 
         mockGetAllEventsUseCaseSuccess(events)
@@ -64,7 +67,7 @@ class HomeViewModelTest : KotlinTestBase() {
                     assertIs<HomeUiState.Data>(it)
                     assertEquals(expectedEvents, it.events)
                     assertEquals(
-                        expected = now.toLocalDateTime(TimeZone.currentSystemDefault()).date,
+                        expected = now.date,
                         actual = it.selectedDate
                     )
                 }
@@ -187,7 +190,7 @@ class HomeViewModelTest : KotlinTestBase() {
 
     // region Helpers
 
-    private fun createDummyEvents(now: Instant = Clock.System.now()) = listOf(
+    private fun createDummyEvents(now: LocalDateTime = Clock.System.nowAsDateTime()) = listOf(
         Event(
             duration = EventDuration.AllDay,
             start = now,
@@ -204,6 +207,7 @@ class HomeViewModelTest : KotlinTestBase() {
 
     private fun createSystemUnderTest() = HomeViewModel(
         getAllEventsUseCase = getAllEventsUseCase,
+        deleteEventByIdUseCase = deleteEventByIdUseCase,
         navigator = appNavigator
     )
 

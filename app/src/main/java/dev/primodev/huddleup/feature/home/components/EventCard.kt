@@ -3,6 +3,7 @@ package dev.primodev.huddleup.feature.home.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,9 +26,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -45,6 +49,7 @@ internal fun EventCard(
     event: Event,
     onEndToStartSwiped: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: Shape = MaterialTheme.shapes.medium,
 ) {
     val swipeToDismissState = rememberSwipeToDismissBoxState()
 
@@ -71,7 +76,7 @@ internal fun EventCard(
                     .fillMaxSize()
                     .background(
                         color = MaterialTheme.colorScheme.error,
-                        shape = MaterialTheme.shapes.medium
+                        shape = shape
                     ),
                 contentAlignment = Alignment.CenterEnd
             ) {
@@ -124,7 +129,8 @@ internal fun EventCard(
     ) {
         EventCardContent(
             modifier = Modifier.fillMaxWidth(),
-            event = event
+            event = event,
+            shape = shape
         )
     }
 }
@@ -133,44 +139,51 @@ internal fun EventCard(
 private fun EventCardContent(
     event: Event,
     modifier: Modifier = Modifier,
+    shape: Shape = MaterialTheme.shapes.medium,
 ) {
-    ElevatedCard(modifier = modifier) {
-        Row(
+    ElevatedCard(
+        modifier = modifier,
+        shape = shape
+    ) {
+        Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                modifier = Modifier.weight(1f),
                 text = event.title,
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Column {
-                when (event.duration) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
+
+                Icon(
+                    painter = painterResource(R.drawable.ic_schedule),
+                    contentDescription = null,
+                    tint = tint
+                )
+
+                val text = when (event.duration) {
                     EventDuration.AllDay -> {
-                        Text(
-                            text = stringResource(R.string.event_card_all_day),
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                        stringResource(R.string.event_card_all_day)
                     }
 
                     EventDuration.Specific -> {
                         val start = event.start.toLocalizedString()
                         val end = event.end.toLocalizedString()
 
-                        Text(
-                            text = start,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-
-                        Text(
-                            text = end,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
+                        "$start - $end"
                     }
                 }
+
+                Text(
+                    text = text,
+                    color = tint,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }

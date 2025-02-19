@@ -1,7 +1,6 @@
 package dev.primodev.huddleup.feature.eventcreation.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.ExperimentalAnimatableApi
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,7 +30,6 @@ import dev.primodev.huddleup.domain.entity.event.EventDuration
 import dev.primodev.huddleup.theme.HuddleUpTheme
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalAnimatableApi::class)
 @Composable
 fun <T> SliderButton(
     items: List<T>,

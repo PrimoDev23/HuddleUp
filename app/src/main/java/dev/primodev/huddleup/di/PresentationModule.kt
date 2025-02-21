@@ -5,6 +5,7 @@ import dev.primodev.huddleup.feature.home.HomeViewModel
 import dev.primodev.huddleup.navigation.AppNavigator
 import dev.primodev.huddleup.navigation.AppNavigatorImpl
 import dev.primodev.huddleup.navigation.NavEventProvider
+import kotlinx.datetime.Clock
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.binds
@@ -15,6 +16,8 @@ val navigationModule = module {
 }
 
 val viewModelModule = module {
+    single<Clock> { Clock.System }
+
     viewModelOf(::HomeViewModel)
     viewModelOf(::EventCreationViewModel)
 }

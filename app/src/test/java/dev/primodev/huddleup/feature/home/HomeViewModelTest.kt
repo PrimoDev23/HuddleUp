@@ -19,6 +19,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
@@ -166,6 +167,54 @@ class HomeViewModelTest : KotlinTestBase() {
         }
     }
 
+    @Test
+    fun `given delete succeeds when delete is triggered, then call use case and ignore result`() {
+        // GIVEN
+        val events = createDummyEvents()
+        val firstEvent = events.first()
+
+        mockGetAllEventsUseCaseSuccess()
+        mockDeleteEventByIdSuccess()
+
+        val viewModel = createSystemUnderTest()
+
+        runTest {
+            viewModel.uiState.test {
+                skipItems(2) // InitLoading, Data
+
+                // WHEN
+                viewModel.onEvent(HomeUiEvent.DeleteSwiped(firstEvent))
+
+                // THEN
+                verify { deleteEventByIdUseCase.execute(firstEvent.id) }
+            }
+        }
+    }
+
+    @Test
+    fun `given delete fails when delete is triggered, then call use case and ignore result`() {
+        // GIVEN
+        val events = createDummyEvents()
+        val firstEvent = events.first()
+
+        mockGetAllEventsUseCaseSuccess()
+        mockDeleteEventByIdError()
+
+        val viewModel = createSystemUnderTest()
+
+        runTest {
+            viewModel.uiState.test {
+                skipItems(2) // InitLoading, Data
+
+                // WHEN
+                viewModel.onEvent(HomeUiEvent.DeleteSwiped(firstEvent))
+
+                // THEN
+                verify { deleteEventByIdUseCase.execute(firstEvent.id) }
+            }
+        }
+    }
+
     // endregion Action Tests
 
     // region Mocking
@@ -181,6 +230,20 @@ class HomeViewModelTest : KotlinTestBase() {
 
     private fun mockGetAllEventsUseCaseError() {
         every { getAllEventsUseCase.execute() } returns delayedFlowOf(
+            AppResult.Loading,
+            AppResult.Error()
+        )
+    }
+
+    private fun mockDeleteEventByIdSuccess() {
+        every { deleteEventByIdUseCase.execute(any()) } returns delayedFlowOf(
+            AppResult.Loading,
+            AppResult.Success(Unit)
+        )
+    }
+
+    private fun mockDeleteEventByIdError() {
+        every { deleteEventByIdUseCase.execute(any()) } returns delayedFlowOf(
             AppResult.Loading,
             AppResult.Error()
         )

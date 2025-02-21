@@ -36,11 +36,12 @@ import kotlin.uuid.Uuid
 class EventCreationViewModel(
     private val insertEventUseCase: InsertEventUseCase,
     private val navigator: AppNavigator,
+    clock: Clock,
 ) : ViewModel() {
 
     private val uuid = Uuid.random()
 
-    private val now = Clock.System.nowAsDateTime()
+    private val now = clock.nowAsDateTime()
     private val initialStart = now
     private val initialEnd = now.plus(1.hours)
 
